@@ -4,7 +4,7 @@
 [![PyPI downloads](https://pypip.in/d/Flask-Resize/badge.png)](https://pypi.python.org/pypi/Flask-Resize)
 
 
-Created by [Jacob Magnusson](https://twitter.com/pyjacob), 2013. Full list of contributors can be found in [CONTRIBUTORS.md](blob/master/CONTRIBUTING.md).
+Created by [Jacob Magnusson](https://twitter.com/pyjacob), 2013. Full list of contributors can be found [here](CONTRIBUTORS.md).
 
 
 ## About
@@ -88,30 +88,38 @@ Some usage examples:
 The full list of arguments are:
 
 ### dimensions
-Required.
+Required
+
 Can be either a string or a two item list. The format when using a string is any of `<width>x<height>`, `<width>` or `x<height>`. If width or height is left out they will be determined from the ratio of the original image. If both width and height are supplied then the output image will be within those boundries.
 
 ### format
 Default: Keep original format
+
 If you want to change the format. A white background is applied when a transparent image is converted to JPEG. Available formats are PNG and JPEG at the moment.
 
 ### quality
 Default: 75
+
 Only matters if output format is jpeg. Quality of the output image. 0-100.
 
 
 ### upscale
 Default: `True`
+
 Disable if you don't want the original image to be upscaled if the dimensions are smaller than those of `dimensions`.
 
 ### fill
 Default: `False`
+
 The default is to keep the ratio of the original image. With `fill` it will crop the image after resizing so that it will have exactly width and height as specified. The anchor-point can be changed with the `anchor` option.
 
 ### anchor
 Default: `center`
+
 Only matters if `fill` is also set. This specifies which part of the image that should be the anchor, i.e. which part that should be retained. Valid choices are `top-left`, `top`, `top-right`, `bottom-left`, `bottom`, `bottom-right`, `center`, `left` and `right`.
 
 ### progressive
+
 Default: True
+
 Whether to use progressive or not. Only matters if the output format is jpeg. [Article about progressive JPEGs](http://www.yuiblog.com/blog/2008/12/05/imageopt-4/).
