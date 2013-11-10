@@ -48,8 +48,9 @@ def get_root_relative_path(image_url):
     return image_url[1:] if image_url.startswith('/') else image_url
 
 
-def get_relative_cache_path(filename, *path_parts):
-    _, _, ext = filename.rpartition('.')
+def get_relative_cache_path(filename, ext, *path_parts):
+    filename_no_ext, _, _ = filename.rpartition('.')
+    filename = u'.'.join((filename_no_ext, ext))
     cache_dir = current_app.config['RESIZE_CACHE_DIR']
     cache_path = u'/'.join(str(p) for p in filter(None, path_parts))
 
@@ -143,14 +144,14 @@ def resize(image_url, dimensions, format=None, quality=75, fill=False,
     original_path = os.path.join(resize_root, root_relative_path)
     cache_path_args = root_relative_path.rpartition('/')[0].split('/')
     cache_path_args.extend([
-        format.lower(),
         width or 'auto',
         height or 'auto',
         anchor.lower().replace('_', '-') if fill else '',
         'fill' if fill else 'no-fill',
         'upscale' if upscale else 'no-upscale',
     ])
-    cache_path = get_relative_cache_path(filename, *cache_path_args)
+    cache_path = get_relative_cache_path(filename, format.lower(),
+                                         *cache_path_args)
     full_cache_url = os.path.join(resize_url, cache_path)
     full_cache_path = os.path.join(resize_root, cache_path)
 
@@ -159,8 +160,9 @@ def resize(image_url, dimensions, format=None, quality=75, fill=False,
 
     if not os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
-                       width=width, height=height, upscale=upscale, fill=fill,
-                       anchor=anchor, quality=quality, progressive=progressive)
+                       format=format, width=width, height=height,
+                       upscale=upscale, fill=fill, anchor=anchor,
+                       quality=quality, progressive=progressive)
 
     return full_cache_url
 
