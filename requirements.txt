@@ -1,0 +1,4 @@
+Pillow>=2.2.1
+pilkit>=1.1.5
+six>=1.4.1
+Flask>=0.10
