@@ -27,11 +27,14 @@ Haven't had time to add a test suite yet so I can only confirm that it works wit
 You need to set at least two configuration options for your Flask app.
 
 ```python
+# Where your media resides
 RESIZE_ROOT = '/path/to/your/media/root/'
+
+# The URL where your media is served at. For the best performance you
+# should serve your media with a proper web server, under a subdomain
+# and with cookies turned off.
 RESIZE_URL = 'http://media.yoursite.com/'
 ```
-
-Where RESIZE_ROOT is where your media resides and RESIZE_URL is the URL which your media is served at. For the best performance you should serve your media with a proper web server, under a subdomain and with cookies turned off.
 
 There are also some optional settings (defaults listed below):
 
