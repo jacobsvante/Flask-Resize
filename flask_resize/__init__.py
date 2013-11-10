@@ -94,7 +94,7 @@ def get_format(image_url, format):
 
 
 def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
-                   fill=False, upscale=True, anchor=None, quality=75,
+                   fill=False, upscale=True, anchor=None, quality=80,
                    progressive=True):
     mkdir_p(outpath.rpartition('/')[0])
     img = Image.open(inpath)
@@ -118,7 +118,7 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
         save_image(new_img, outfile, format=format, options=options)
 
 
-def resize(image_url, dimensions, format=None, quality=75, fill=False,
+def resize(image_url, dimensions, format=None, quality=80, fill=False,
            upscale=True, progressive=True, anchor='center'):
     """Jinja filter for resizing (and converting) images
 

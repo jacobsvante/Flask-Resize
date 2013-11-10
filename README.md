@@ -101,7 +101,7 @@ Default: Keep original format
 If you want to change the format. A white background is applied when a transparent image is converted to JPEG. Available formats are PNG and JPEG at the moment.
 
 ### quality
-Default: 75
+Default: 80
 
 Only matters if output format is jpeg. Quality of the output image. 0-100.
 
