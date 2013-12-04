@@ -2,12 +2,12 @@ import errno
 import hashlib
 import os
 import six
+from uuid import uuid4
 from pilkit.processors import Anchor, ResizeToFit, ResizeToFill
 from pilkit.utils import save_image
 from flask import current_app
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from .metadata import __version_info__, __version__ # NOQA
-
 
 JPEG = 'JPEG'
 PNG = 'PNG'
@@ -39,13 +39,13 @@ def parse_dimensions(dimensions):
     return [(int(d) if d else None) for d in dimensions]
 
 
-def get_root_relative_path(image_url):
+def get_root_relative_path(image_path):
     resize_url = current_app.config['RESIZE_URL']
 
-    if image_url.startswith(resize_url):
-        image_url = image_url[len(resize_url):]
+    if image_path.startswith(resize_url):
+        image_path = image_path[len(resize_url):]
 
-    return image_url[1:] if image_url.startswith('/') else image_url
+    return image_path[1:] if image_path.startswith('/') else image_path
 
 
 def get_relative_cache_path(filename, ext, *path_parts):
@@ -81,9 +81,9 @@ def mkdir_p(path):
             raise
 
 
-def get_format(image_url, format):
+def get_format(image_path, format):
     if not format:
-        _, _, format = image_url.rpartition('.')
+        _, _, format = image_path.rpartition('.')
     format = format.upper()
     if format == 'JPG':
         format = JPEG
@@ -93,11 +93,42 @@ def get_format(image_url, format):
     return format
 
 
+def get_font_path(font_name):
+    pkgdir = os.path.dirname(__file__)
+    return os.path.join(pkgdir, 'fonts', '{}.ttf'.format(font_name))
+
+
+def get_placeholder(width=None, height=None, placeholder_reason=None):
+    placeholder_width = width or height
+    placeholder_height = height or width
+    placeholder_text = '{}x{}'.format(placeholder_width,
+                                      placeholder_height)
+    if placeholder_reason is not None:
+        placeholder_text += u' ({})'.format(placeholder_reason)
+    text_fill = (255, ) * 3
+    bg_fill = (220, ) * 3
+    img = Image.new('RGB', (placeholder_width, placeholder_height), bg_fill)
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype(get_font_path('DroidSans'), size=36)
+    text_width, text_height = draw.textsize(placeholder_text, font=font)
+    draw.text((((placeholder_width - text_width) / 2),
+               ((placeholder_height - text_height) / 2)),
+              text=placeholder_text, font=font, fill=text_fill)
+    del draw
+    return img
+
+
 def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
                    fill=False, upscale=True, anchor=None, quality=80,
-                   progressive=True):
+                   progressive=True, placeholder_reason=None):
     mkdir_p(outpath.rpartition('/')[0])
-    img = Image.open(inpath)
+    if not os.path.isfile(inpath):
+        if placeholder_reason:
+            img = get_placeholder(width, height, placeholder_reason)
+        else:
+            raise TypeError(u'No such file {}'.format(inpath))
+    else:
+        img = Image.open(inpath)
     processor_kwargs = dict(width=width, height=height, upscale=upscale)
 
     if fill:
@@ -107,8 +138,7 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
     processor = ResizeMethod(**processor_kwargs)
     new_img = processor.process(img)
 
-    assert (not os.path.exists(outpath),
-            'Path to save to already exists')
+    assert (not os.path.exists(outpath), 'Path to save to already exists')
 
     options = {}
     if format == JPEG:
@@ -118,8 +148,12 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
         save_image(new_img, outfile, format=format, options=options)
 
 
-def resize(image_url, dimensions, format=None, quality=80, fill=False,
-           upscale=True, progressive=True, anchor='center'):
+def get_placeholder_filename():
+    return '{}.png'.format(uuid4())
+
+
+def resize(image_path, dimensions, format=None, quality=80, fill=False,
+           upscale=True, progressive=True, anchor='center', placeholder=False):
     """Jinja filter for resizing (and converting) images
 
     Usage::
@@ -134,24 +168,50 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         # Convert to JPG
         {{ img_path|resize('300x300', format='jpg') }}
     """
-    _, _, filename = image_url.rpartition('/')
     resize_root = current_app.config['RESIZE_ROOT']
     resize_url = current_app.config['RESIZE_URL']
-    root_relative_path = get_root_relative_path(image_url)
+
+    if not image_path:
+        if placeholder:
+            image_path = filename = get_placeholder_filename()
+            placeholder_reason = 'empty image path'
+        else:
+            raise TypeError('Empty image path received')
+    else:
+        placeholder_reason = None
+
+    root_relative_path = get_root_relative_path(image_path)
+    original_path = os.path.join(resize_root, root_relative_path)
+
+    if os.path.isfile(original_path):
+        _, _, filename = image_path.rpartition('/')
+        placeholder_reason = None
+    elif placeholder_reason is not None:
+        pass
+    elif placeholder:
+        placeholder_reason = u'{} does not exist'.format(root_relative_path)
+        image_path = filename = get_placeholder_filename()
+    else:
+        raise TypeError(u'No such file {}'.format(original_path))
+
     width, height = parse_dimensions(dimensions)
     anchor = get_anchor(anchor)
-    format = get_format(image_url, format)
-    original_path = os.path.join(resize_root, root_relative_path)
-    cache_path_args = root_relative_path.rpartition('/')[0].split('/')
-    cache_path_args.extend([
-        width or 'auto',
-        height or 'auto',
-        anchor.lower().replace('_', '-') if fill else '',
-        'fill' if fill else 'no-fill',
-        'upscale' if upscale else 'no-upscale',
-    ])
-    cache_path = get_relative_cache_path(filename, format.lower(),
-                                         *cache_path_args)
+    format = get_format(image_path, format)
+    if placeholder_reason is not None:
+        cache_path = get_relative_cache_path('thumbnail.png', format.lower(),
+                                             width, height)
+    else:
+        cache_path_args = root_relative_path.rpartition('/')[0].split('/')
+        cache_path_args.extend([
+            quality if format == JPEG else '',
+            width or 'auto',
+            height or 'auto',
+            anchor.lower().replace('_', '-') if fill else '',
+            'fill' if fill else 'no-fill',
+            'upscale' if upscale else 'no-upscale',
+        ])
+        cache_path = get_relative_cache_path(filename, format.lower(),
+                                             *cache_path_args)
     full_cache_url = os.path.join(resize_url, cache_path)
     full_cache_path = os.path.join(resize_root, cache_path)
 
@@ -162,7 +222,8 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         generate_image(inpath=original_path, outpath=full_cache_path,
                        format=format, width=width, height=height,
                        upscale=upscale, fill=fill, anchor=anchor,
-                       quality=quality, progressive=progressive)
+                       quality=quality, progressive=progressive,
+                       placeholder_reason=placeholder_reason)
 
     return full_cache_url
 

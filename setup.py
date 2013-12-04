@@ -30,7 +30,12 @@ setup(
     description='Flask extension for resizing images in templates',
     long_description=__doc__,
     packages=find_packages(),
-    package_data={},
+    package_dir={pkgname: pkgname},
+    package_data={
+        pkgname: [
+            'fonts/*.ttf',
+        ],
+    },
     install_requires=[str(ir.req) for ir
                       in parse_requirements('requirements.txt')],
     entry_points={

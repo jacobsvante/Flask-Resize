@@ -1,14 +1,14 @@
 # Changelog
 
-## 0.1.1
+## 0.2.0 (2013-12-04)
 
-**Date**: 2013-11-09
+* Support for generating image placeholders
 
-* format argument wasn't respected
+## 0.1.1 (2013-11-09)
+
+* Format argument wasn't respected
 * Bumped default JPEG quality to 80
 
-## 0.1.0
-
-**Date**: 2013-11-09
+## 0.1.0 (2013-11-09)
 
 * Initial version

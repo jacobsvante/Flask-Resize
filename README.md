@@ -95,6 +95,13 @@ Required
 
 Can be either a string or a two item list. The format when using a string is any of `<width>x<height>`, `<width>` or `x<height>`. If width or height is left out they will be determined from the ratio of the original image. If both width and height are supplied then the output image will be within those boundries.
 
+### placeholder
+
+Default: False
+
+When True a placeholder image will be generated if the image can't be generated. The placeholder will contain text specifying dimensions, and reason for image not being generated (either `empty image path` or `<filepath> does not exist`)
+
+
 ### format
 Default: Keep original format
 
