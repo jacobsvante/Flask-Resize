@@ -99,7 +99,7 @@ Can be either a string or a two item list. The format when using a string is any
 
 Default: False
 
-When True a placeholder image will be generated if the image can't be generated. The placeholder will contain text specifying dimensions, and reason for image not being generated (either `empty image path` or `<filepath> does not exist`)
+A placeholder image will be returned if the image couldn't be generated. The placeholder will contain text specifying dimensions, and reason for image not being generated (either `empty image path` or `<filepath> does not exist`)
 
 
 ### format
