@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1 (2013-12-09)
+
+* Fix: Same placeholder reason text was used for all resizes with identical dimensions
+
 ## 0.2.0 (2013-12-04)
 
 * Support for generating image placeholders

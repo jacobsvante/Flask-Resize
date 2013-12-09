@@ -7,7 +7,7 @@ from pilkit.processors import Anchor, ResizeToFit, ResizeToFill
 from pilkit.utils import save_image
 from flask import current_app
 from PIL import Image, ImageDraw, ImageFont
-from .metadata import __version_info__, __version__ # NOQA
+from .metadata import __version_info__, __version__  # NOQA
 
 JPEG = 'JPEG'
 PNG = 'PNG'
@@ -198,7 +198,9 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
     anchor = get_anchor(anchor)
     format = get_format(image_path, format)
     if placeholder_reason is not None:
-        cache_path = get_relative_cache_path('thumbnail.png', format.lower(),
+        cache_path = get_relative_cache_path('thumbnail.png',
+                                             root_relative_path,
+                                             format.lower(),
                                              width, height)
     else:
         cache_path_args = root_relative_path.rpartition('/')[0].split('/')
