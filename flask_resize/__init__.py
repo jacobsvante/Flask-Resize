@@ -2,7 +2,7 @@ import errno
 import hashlib
 import os
 import six
-from uuid import uuid4
+import re
 from pilkit.processors import Anchor, ResizeToFit, ResizeToFill
 from pilkit.utils import save_image
 from flask import current_app
@@ -148,8 +148,8 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
         save_image(new_img, outfile, format=format, options=options)
 
 
-def get_placeholder_filename():
-    return '{}.png'.format(uuid4())
+def get_placeholder_filename(orig_filename):
+    return '{}.png'.format(re.sub('\W', '-', orig_filename))
 
 
 def resize(image_path, dimensions, format=None, quality=80, fill=False,
@@ -173,8 +173,9 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
 
     if not image_path:
         if placeholder:
-            image_path = filename = get_placeholder_filename()
             placeholder_reason = 'empty image path'
+            image_path = filename = \
+                get_placeholder_filename(placeholder_reason)
         else:
             raise TypeError('Empty image path received')
     else:
@@ -186,34 +187,28 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
     if os.path.isfile(original_path):
         _, _, filename = image_path.rpartition('/')
         placeholder_reason = None
-    elif placeholder_reason is not None:
+    elif not placeholder_reason:
+        placeholder_reason = u'{} does not exist'.format(image_path)
+        image_path = filename = get_placeholder_filename(placeholder_reason)
+    elif placeholder and placeholder_reason:
         pass
-    elif placeholder:
-        placeholder_reason = u'{} does not exist'.format(root_relative_path)
-        image_path = filename = get_placeholder_filename()
     else:
         raise TypeError(u'No such file {}'.format(original_path))
 
     width, height = parse_dimensions(dimensions)
     anchor = get_anchor(anchor)
     format = get_format(image_path, format)
-    if placeholder_reason is not None:
-        cache_path = get_relative_cache_path('thumbnail.png',
-                                             root_relative_path,
-                                             format.lower(),
-                                             width, height)
-    else:
-        cache_path_args = root_relative_path.rpartition('/')[0].split('/')
-        cache_path_args.extend([
-            quality if format == JPEG else '',
-            width or 'auto',
-            height or 'auto',
-            anchor.lower().replace('_', '-') if fill else '',
-            'fill' if fill else 'no-fill',
-            'upscale' if upscale else 'no-upscale',
-        ])
-        cache_path = get_relative_cache_path(filename, format.lower(),
-                                             *cache_path_args)
+    cache_path_args = root_relative_path.rpartition('/')[0].split('/')
+    cache_path_args.extend([
+        quality if format == JPEG else '',
+        width or 'auto',
+        height or 'auto',
+        anchor.lower().replace('_', '-') if fill else '',
+        'fill' if fill else 'no-fill',
+        'upscale' if upscale else 'no-upscale',
+    ])
+    cache_path = get_relative_cache_path(filename, format.lower(),
+                                         *cache_path_args)
     full_cache_url = os.path.join(resize_url, cache_path)
     full_cache_path = os.path.join(resize_root, cache_path)
 

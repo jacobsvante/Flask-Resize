@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 (2014-02-01)
+
+* Fix: Placeholders were being regenerated on each page load.
+
 ## 0.2.1 (2013-12-09)
 
 * Fix: Same placeholder reason text was used for all resizes with identical dimensions
