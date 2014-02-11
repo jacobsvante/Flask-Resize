@@ -1,8 +1,8 @@
-[![Stories in Ready](https://badge.waffle.io/jmagnusson/flask-resize.png?label=ready)](https://waffle.io/jmagnusson/flask-resize)
 # Flask-Resize
 
 [![PyPI version](https://pypip.in/v/Flask-Resize/badge.png)](https://pypi.python.org/pypi/Flask-Resize)
 [![PyPI downloads](https://pypip.in/d/Flask-Resize/badge.png)](https://pypi.python.org/pypi/Flask-Resize)
+[![Stories in Ready](https://badge.waffle.io/jmagnusson/flask-resize.png?label=ready)](https://waffle.io/jmagnusson/flask-resize)
 
 
 Created by [Jacob Magnusson](https://twitter.com/pyjacob), 2013. Full list of contributors can be found [here](CONTRIBUTORS.md).
