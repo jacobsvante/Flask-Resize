@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/jmagnusson/flask-resize.png?label=ready)](https://waffle.io/jmagnusson/flask-resize)
 # Flask-Resize
 
 [![PyPI version](https://pypip.in/v/Flask-Resize/badge.png)](https://pypi.python.org/pypi/Flask-Resize)
