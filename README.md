@@ -5,7 +5,7 @@
 [![Stories in Ready](https://badge.waffle.io/jmagnusson/flask-resize.png?label=ready)](https://waffle.io/jmagnusson/flask-resize)
 
 
-Created by [Jacob Magnusson](https://twitter.com/pyjacob), 2013. Full list of contributors can be found [here](CONTRIBUTORS.md).
+Created by [Jacob Magnusson](https://twitter.com/jacobsvante_), 2013. Full list of contributors can be found [here](CONTRIBUTORS.md).
 
 
 ## About
