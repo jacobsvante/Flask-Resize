@@ -23,6 +23,9 @@ with open(metadata_relpath) as fh:
     metadata = {}
     exec(fh.read(), globals(), metadata)
 
+# Temp fix for https://github.com/tweepy/tweepy/issues/533
+import uuid
+requirements = parse_requirements('requirements.txt', session=uuid.uuid1())
 
 setup(
     name=appname,
@@ -36,8 +39,7 @@ setup(
             'fonts/*.ttf',
         ],
     },
-    install_requires=[str(ir.req) for ir
-                      in parse_requirements('requirements.txt')],
+    install_requires=[str(ir.req) for ir in requirements],
     entry_points={
         'console_scripts': {},
     },
