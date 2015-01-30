@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3 (2015-01-30)
+
+* Python 3.4 support (might work in other Pythons as well)
+
 ## 0.2.2 (2014-02-01)
 
 * Fix: Placeholders were being regenerated on each page load.

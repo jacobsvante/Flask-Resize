@@ -19,7 +19,7 @@ Flask extension for easily resizing images in templates. Can convert to/from JPE
 
 ## Compatibility
 
-Haven't had time to add a test suite yet so I can only confirm that it works with Python 2.7 and Flask 0.10 at the moment. Will probably not work in Windows as there are some differences in how paths are handled.
+Haven't had time to add a test suite yet so I can only confirm that it works with Python 2.7/3.4 and Flask 0.10 at the moment. Will probably not work in Windows as there are some differences in how paths are handled.
 
 
 ## Configuration

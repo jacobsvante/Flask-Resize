@@ -56,7 +56,7 @@ def get_relative_cache_path(filename, ext, *path_parts):
 
     if current_app.config['RESIZE_HASH_FILENAME']:
         hash = hashlib.new(current_app.config['RESIZE_HASH_METHOD'])
-        hash.update(cache_path + filename)
+        hash.update(six.b(cache_path + filename))
         return u'{0}/{1}.{2}'.format(cache_dir, hash.hexdigest(), ext)
     else:
         return os.path.join(cache_dir, cache_path, filename)
@@ -144,7 +144,7 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
     if format == JPEG:
         options.update({'quality': int(quality), 'progressive': progressive})
 
-    with open(outpath, 'w') as outfile:
+    with open(outpath, 'wb') as outfile:
         save_image(new_img, outfile, format=format, options=options)
 
 
