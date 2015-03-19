@@ -10,6 +10,7 @@ See https://github.com/jmagnusson/Flask-Resize for usage.
 """
 from __future__ import print_function
 from pip.req import parse_requirements
+from pip.download import PipSession
 from setuptools import setup, find_packages
 
 
@@ -23,9 +24,7 @@ with open(metadata_relpath) as fh:
     metadata = {}
     exec(fh.read(), globals(), metadata)
 
-# Temp fix for https://github.com/tweepy/tweepy/issues/533
-import uuid
-requirements = parse_requirements('requirements.txt', session=uuid.uuid1())
+requirements = parse_requirements('requirements.txt', session=PipSession())
 
 setup(
     name=appname,

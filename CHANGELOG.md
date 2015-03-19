@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4 (2015-03-19)
+
+* Fix for pip parse_requirements syntax change (fixes #6)
+
 ## 0.2.3 (2015-01-30)
 
 * Python 3.4 support (might work in other Pythons as well)
