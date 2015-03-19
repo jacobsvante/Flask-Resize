@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.5 (2015-03-20)
+
+* [bugfix] Because of a logic error no exception was raised when file to resize didn't exist
+
 ## 0.2.4 (2015-03-19)
 
 * [bugfix] Fix for pip parse_requirements syntax change (fixes #6)

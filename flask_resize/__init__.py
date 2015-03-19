@@ -148,8 +148,11 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
         save_image(new_img, outfile, format=format, options=options)
 
 
-def get_placeholder_filename(orig_filename):
-    return '{}.png'.format(re.sub('\W', '-', orig_filename))
+def safe_placeholder_filename(orig_filename, ext='png'):
+    """
+    Strip non-letters/digits from filename and append extension to filename
+    """
+    return '{}.{}'.format(re.sub('\W', '-', orig_filename), ext)
 
 
 def resize(image_path, dimensions, format=None, quality=80, fill=False,
@@ -168,14 +171,15 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
         # Convert to JPG
         {{ img_path|resize('300x300', format='jpg') }}
     """
+    use_placeholder = placeholder
     resize_root = current_app.config['RESIZE_ROOT']
     resize_url = current_app.config['RESIZE_URL']
 
     if not image_path:
-        if placeholder:
+        if use_placeholder:
             placeholder_reason = 'empty image path'
             image_path = filename = \
-                get_placeholder_filename(placeholder_reason)
+                safe_placeholder_filename(placeholder_reason)
         else:
             raise TypeError('Empty image path received')
     else:
@@ -187,13 +191,13 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
     if os.path.isfile(original_path):
         _, _, filename = image_path.rpartition('/')
         placeholder_reason = None
-    elif not placeholder_reason:
-        placeholder_reason = u'{} does not exist'.format(image_path)
-        image_path = filename = get_placeholder_filename(placeholder_reason)
-    elif placeholder and placeholder_reason:
-        pass
     else:
-        raise TypeError(u'No such file {}'.format(original_path))
+        placeholder_reason = u'"{}" does not exist.'.format(original_path)
+        if use_placeholder:
+            image_path = safe_placeholder_filename(placeholder_reason)
+            filename = image_path
+        else:
+            raise TypeError(placeholder_reason)
 
     width, height = parse_dimensions(dimensions)
     anchor = get_anchor(anchor)
