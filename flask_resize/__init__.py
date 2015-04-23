@@ -3,10 +3,10 @@ import hashlib
 import os
 import six
 import re
-from pilkit.processors import Anchor, ResizeToFit, ResizeToFill
+from pilkit.processors import Anchor, ResizeToFit, ResizeToFill, MakeOpaque
 from pilkit.utils import save_image
 from flask import current_app
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageColor
 from .metadata import __version_info__, __version__  # NOQA
 
 JPEG = 'JPEG'
@@ -118,9 +118,28 @@ def get_placeholder(width=None, height=None, placeholder_reason=None):
     return img
 
 
+def hexvalue(v):
+    """Return the normalized hex value of `v`, which can be a tuple or str"""
+    if isinstance(v, tuple):
+        v = ''.join('{:02x}'.format(d) for d in v)
+    if not v.startswith('#'):
+        v = u'#{}'.format(v)
+    if len(v) == 4:
+        # 3 hex > 6 hex
+        v = u'#{}'.format(''.join(s + s for s in v[1:]))
+    return v
+
+
+def make_opaque(img, bgcolor):
+    """Add a background color to the image"""
+    bgcolor = ImageColor.getrgb(hexvalue(bgcolor))
+    processor = MakeOpaque(background_color=bgcolor)
+    return processor.process(img)
+
+
 def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
                    fill=False, upscale=True, anchor=None, quality=80,
-                   progressive=True, placeholder_reason=None):
+                   bgcolor=None, progressive=True, placeholder_reason=None):
     mkdir_p(outpath.rpartition('/')[0])
     if not os.path.isfile(inpath):
         if placeholder_reason:
@@ -144,6 +163,9 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
     if format == JPEG:
         options.update({'quality': int(quality), 'progressive': progressive})
 
+    if bgcolor is not None:
+        new_img = make_opaque(new_img, bgcolor)
+
     with open(outpath, 'wb') as outfile:
         save_image(new_img, outfile, format=format, options=options)
 
@@ -156,7 +178,8 @@ def safe_placeholder_filename(orig_filename, ext='png'):
 
 
 def resize(image_path, dimensions, format=None, quality=80, fill=False,
-           upscale=True, progressive=True, anchor='center', placeholder=False):
+           bgcolor=None, upscale=True, progressive=True, anchor='center',
+           placeholder=False):
     """Jinja filter for resizing (and converting) images
 
     Usage::
@@ -210,6 +233,7 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
         anchor.lower().replace('_', '-') if fill else '',
         'fill' if fill else 'no-fill',
         'upscale' if upscale else 'no-upscale',
+        hexvalue(bgcolor) if bgcolor else '',
     ])
     cache_path = get_relative_cache_path(filename, format.lower(),
                                          *cache_path_args)
@@ -222,8 +246,8 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
     if not os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
                        format=format, width=width, height=height,
-                       upscale=upscale, fill=fill, anchor=anchor,
-                       quality=quality, progressive=progressive,
+                       bgcolor=bgcolor, upscale=upscale, fill=fill,
+                       anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
 
     return full_cache_url

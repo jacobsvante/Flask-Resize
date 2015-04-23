@@ -106,10 +106,21 @@ A placeholder image will be returned if the image couldn't be generated. The pla
 ### format
 Default: Keep original format
 
-If you want to change the format. A white background is applied when a transparent image is converted to JPEG. Available formats are PNG and JPEG at the moment.
+If you want to change the format. A white background color is applied when a transparent image is converted to JPEG, or the color specified with `bgcolor`. Available formats are PNG and JPEG at the moment.
+
+## bgcolor
+Default: Don't add a background color
+
+Adds a background color to the image. Can be in any of the following formats:
+
+* `#333`
+* `#333333`
+* `333`
+* `333333`
+* (20, 20, 20)
 
 ### quality
-Default: 80
+Default: `80`
 
 Only matters if output format is jpeg. Quality of the output image. 0-100.
 

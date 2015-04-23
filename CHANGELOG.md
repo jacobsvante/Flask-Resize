@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 (2015-04-23)
+
+* [feature] Adds the `bgcolor` option for specifying a background color to apply to the image.
+
 ## 0.2.5 (2015-03-20)
 
 * [bugfix] Because of a logic error no exception was raised when file to resize didn't exist
