@@ -117,7 +117,7 @@ Adds a background color to the image. Can be in any of the following formats:
 * `#333333`
 * `333`
 * `333333`
-* (20, 20, 20)
+* (51, 51, 51)
 
 ### quality
 Default: `80`
