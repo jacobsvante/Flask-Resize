@@ -32,3 +32,9 @@ def test_resize_settings():
     working_app = _resizeapp(RESIZE_URL='http://test.dev', RESIZE_ROOT='/')
     assert_is_instance(working_app, flask.Flask)
 
+
+def test_resize_noop():
+    app = _resizeapp(RESIZE_NOOP=True)
+    with app.test_request_context():
+        generated_image_path = resize('xyz.png', 'WxH')
+    assert_equal(generated_image_path, 'xyz.png')

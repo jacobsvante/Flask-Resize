@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0 (2015-04-28)
+
+* [feature] Adds the setting `RESIZE_NOOP` which will just return the passed in image path, as is. This was added to ease the pain of unit testing when Flask-Resize is a part of the project.
+* [change] Added more tests
+
 ## 0.3.0 (2015-04-23)
 
 * [feature] Adds the `bgcolor` option for specifying a background color to apply to the image.

@@ -194,6 +194,9 @@ def resize(image_path, dimensions, format=None, quality=80, fill=False,
         # Convert to JPG
         {{ img_path|resize('300x300', format='jpg') }}
     """
+    if current_app.config['RESIZE_NOOP']:
+        return image_path
+
     use_placeholder = placeholder
     resize_root = current_app.config['RESIZE_ROOT']
     resize_url = current_app.config['RESIZE_URL']
@@ -262,6 +265,15 @@ class Resize(object):
             self.init_app(app)
 
     def init_app(self, app):
+        app.jinja_env.filters['resize'] = resize
+        app.config.setdefault('RESIZE_NOOP', False)
+        app.config.setdefault('RESIZE_CACHE_DIR', 'cache')
+        app.config.setdefault('RESIZE_HASH_FILENAME', True)
+        app.config.setdefault('RESIZE_HASH_METHOD', 'md5')
+
+        if app.config['RESIZE_NOOP']:
+            return  # No RESIZE_URL or RESIZE_ROOT need to be specified.
+
         if 'RESIZE_URL' not in app.config:
             raise RuntimeError('You must specify RESIZE_URL.')
         if 'RESIZE_ROOT' not in app.config:
@@ -274,12 +286,6 @@ class Resize(object):
                                'regular file.')
         if not resize_root.endswith('/'):
             app.config['RESIZE_ROOT'] = resize_root + '/'
-
-        app.config.setdefault('RESIZE_CACHE_DIR', 'cache')
-        app.config.setdefault('RESIZE_HASH_FILENAME', True)
-        app.config.setdefault('RESIZE_HASH_METHOD', 'md5')
-
-        app.jinja_env.filters['resize'] = resize
 
     def teardown(self, exception):
         pass
