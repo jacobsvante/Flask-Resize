@@ -4,20 +4,20 @@ Usage
 Usage in Jinja templates
 ------------------------
 
-After having configured Flask-Resize in your app the resize filter should be
-available in your jinja templates.
+After having :doc:`installed <installation>` and :doc:`configured <configuration>` Flask-Resize in your app the ``resize`` filter should be available in your jinja templates.
 
-.. code:: python
+Generate an image from the supplied image URL that will fit
+within an area of 600px width and 400px height::
 
-    # Generate an image from the supplied image path that will fit
-    # within an area of 600px width and 400px height.
-    <img src="{{ img_path|resize('600x400') }}">
+    {{ original_image_url|resize('600x400') }}
 
-    # Resize and crop so that the image will fill the entire area
-    <img src="{{ img_path|resize('300x300', fill=1)" }}>
+Resize and crop so that the image will fill the entire area::
 
-    # Convert to JPG
-    <img src="{{ img_path|resize('300x300', format='jpg')" }}>
+    {{ original_image_url|resize('300x300', fill=1) }}
+
+Convert to JPG::
+
+    {{ original_image_url|resize('300x300', format='jpg') }}
 
 List of arguments
 -----------------

@@ -1,8 +1,43 @@
 Configuration
 =============
 
+Setting up your flask app to use Flask-Resize
+---------------------------------------------
+
+Using direct initialization::
+
+    import flask
+    import flask_resize
+
+    app = flask.Flask(__name__)
+    app.config['RESIZE_URL'] = 'https://mysite.com/'
+    app.config['RESIZE_ROOT'] = '/home/user/myapp/images'
+
+    flask_resize.Resize(app)
+
+Using the app factory pattern::
+
+    import flask
+    import flask_resize
+
+    resize = flask_resize.Resize()
+
+    def create_app(**config_values):
+        app = flask.Flask()
+        app.config.update(**config_values)
+        resize.init_app(app)
+        return app
+
+    # And later on...
+    app = create_app(RESIZE_URL='https://mysite.com/',
+                     RESIZE_ROOT='/home/user/myapp/images')
+
+
+Available settings
+------------------
+
 Required
---------
+~~~~~~~~
 
 You need to set at least two configuration options for your Flask app.
 
@@ -17,7 +52,7 @@ You need to set at least two configuration options for your Flask app.
     RESIZE_URL = 'http://media.yoursite.com/'
 
 Optional
---------
+~~~~~~~~
 
 There are also some optional settings (defaults listed below):
 
@@ -34,21 +69,4 @@ There are also some optional settings (defaults listed below):
     # Supports all methods that hashlib supports.
     RESIZE_HASH_METHOD = 'md5'
 
-To configure Flask-Resize for your app:
-
-.. code:: python
-
-    from flask.ext.resize import Resize
-    app = Flask(__name__)
-    app.config.from_pyfile('/path/to/myconfig.py')
-    resize = Resize(app)
-
-Or if using a factory function when creating the app:
-
-.. code:: python
-
-    from flask.ext.resize import Resize
-    resize = Resize()
-    ...
-    app = create_app('/path/to/myconfig.py')
-    resize.init_app(app)
+To configure Flask-Resize for your app you now have two options.

@@ -10,7 +10,7 @@
 [![Coverage Status](https://coveralls.io/repos/jmagnusson/Flask-Resize/badge.svg?branch=master)](https://coveralls.io/r/jmagnusson/Flask-Resize?branch=master)
 [![Code Health](https://landscape.io/github/jmagnusson/Flask-Resize/master/landscape.svg?style=flat)](https://landscape.io/github/jmagnusson/Flask-Resize/master)
 
-Created by [Jacob Magnusson](https://twitter.com/jacobsvante_), 2013. Full list of contributors can be found [here](CONTRIBUTORS.md).
+Created by [Jacob Magnusson](https://twitter.com/jacobsvante_). Full list of contributors can be found [here](CONTRIBUTORS.md).
 
 
 ## About
