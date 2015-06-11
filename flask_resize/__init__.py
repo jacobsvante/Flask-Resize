@@ -18,7 +18,7 @@ def parse_dimensions(dimensions):
     """Parse the Flask-Resize image dimensions format string/2-tuple
 
     Args:
-        dimensions (str, Sequence[int]):
+        dimensions (:class:`str`, Sequence[:class:`int`]):
             Can be a string in format ``<width>x<height>``, ``<width>``,
             ``<width>x``, or ``x<height>``. Or a 2-tuple of ints containg
             width and height.
@@ -79,7 +79,7 @@ def _construct_relative_cache_path(filename, ext, *path_parts):
             The name of the file, excluding its extension
         ext (str):
             The file extension to use for the generated image
-        *path_parts (Sequence[str]):
+        *path_parts (Sequence[:class:`str`]):
             A sequence of strings to use as a unique identifier for the image.
             Usually image settings such as width, height, format etc.
 
@@ -149,7 +149,7 @@ def _parse_format(image_path, format=None):
     Args:
         image_path (str):
             Image path to parse format from
-        format (Optional[str]):
+        format (Optional[:class:`str`]):
             This format is assumed if argument is not None
 
     Raises:
@@ -188,11 +188,11 @@ def create_placeholder_img(width=None, height=None, placeholder_reason=None):
     """Create a placeholder image that specified its width and height, and an optional text.
 
     Args:
-        width (Optional[str]):
+        width (Optional[:class:`str`]):
             Width to use for the image. Will use `height` if not provided.
-        height (Optional[str]):
+        height (Optional[:class:`str`]):
             Height to use for the image. Will use `width` if not provided.
-        placeholder_reason (Optional[str]):
+        placeholder_reason (Optional[:class:`str`]):
             Text to add to the center of the placeholder image.
 
     Raises:
@@ -228,7 +228,7 @@ def parse_rgb(v, include_number_sign=True):
     """Create a hex value color representation of the provided value
 
     Args:
-        v (str, Sequence[int, int, int]):
+        v (:class:`str`, Sequence[:class:`int`, :class:`int`, :class:`int`]):
             A RGB color value in hex representation, may or may not start
             with a number sign ("#"). Can be in short CSS format with only
             three characters, or the regular six character length.
@@ -276,9 +276,9 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             Path to the image to generate a new image out of.
         outpath (str):
             Where the new image will end up.
-        width (Optional[int]):
+        width (Optional[:class:`int`]):
             The width to use for the generated image.
-        height (Optional[int]):
+        height (Optional[:class:`str`]):
             The height to use for the generated image.
         format (str):
             Format to convert into. Defaults to "JPEG".
@@ -295,12 +295,12 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             Possible values are "center", "top_left" etc...
         quality (int):
             Quality of the output image, if the format is JPEG. Defaults to 80.
-        bgcolor (Optional[str]):
+        bgcolor (Optional[:class:`str`]):
             If specified this color will be used as background.
         progressive (bool):
             Whether to use progressive encoding or not when JPEG is the
             output format.
-        placeholder_reason (Optional[str]):
+        placeholder_reason (Optional[:class:`str`]):
             A text to show the user if the image path could not be found.
 
     Raises:
@@ -375,10 +375,10 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
     Args:
         image_url (str):
             URL for the image to resize.
-        dimensions (str, Sequence[int, int]):
+        dimensions (str, Sequence[:class:`int`, :class:`int`]):
             Width and height to use when generating the new image.
             Uses the format of :func:`parse_dimensions`.
-        format (Optional[str]):
+        format (Optional[:class:`str`]):
             Format to convert into. Defaults to using the same format as the
             original image.
         quality (int):
@@ -386,7 +386,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         fill (bool):
             Fill the entire width and height that was specified if True,
             otherwise keep the original image dimensions. Defaults to False.
-        bgcolor (Optional[str]):
+        bgcolor (Optional[:class:`str`]):
             If specified this color will be used as background.
         upscale (bool):
             Whether or not to allow the image to become bigger than the
@@ -525,10 +525,9 @@ class Resize(object):
     def __init__(self, app=None):
         """
         Args:
-            app (Optional[flask.Flask]): Flask app to configure this instance
-                                         on. Only use this if you're not using
-                                         an factory function to initialize the
-                                         app.
+            app (Optional[:class:`flask.Flask`]):
+                Flask app to configure thisinstance on. Only use this if
+                you're not using an factory function to initialize the app.
         """
         self.app = app
         if app is not None:
@@ -538,7 +537,7 @@ class Resize(object):
         """Initialize Flask-Resize
 
         Args:
-            app (flask.Flask):
+            app (:class:`flask.Flask`):
                 The Flask app to configure.
 
         Raises:

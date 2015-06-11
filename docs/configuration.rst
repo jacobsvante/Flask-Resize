@@ -61,12 +61,22 @@ There are also some optional settings (defaults listed below):
     # Where the resized images should be saved. Relative to RESIZE_ROOT.
     RESIZE_CACHE_DIR = 'cache'
 
+.. code:: python
+
     # Set to False if you want Flask-Resize to create sub-directories for
     # each resize setting instead of using a hash.
     RESIZE_HASH_FILENAME = True
+
+.. code:: python
 
     # Change if you want to use something other than md5 for your hashes.
     # Supports all methods that hashlib supports.
     RESIZE_HASH_METHOD = 'md5'
 
-To configure Flask-Resize for your app you now have two options.
+.. code:: python
+    # Useful when testing. Makes Flask-Resize skip all processing and just
+    # return the original image.
+    RESIZE_NOOP = False
+
+.. versionadded:: 0.4.0
+   ``RESIZE_NOOP`` was added.
