@@ -228,12 +228,11 @@ def parse_rgb(v, include_number_sign=True):
     """Create a hex value color representation of the provided value
 
     Args:
-        v (str):
+        v (str, Sequence[int, int, int]):
             A RGB color value in hex representation, may or may not start
             with a number sign ("#"). Can be in short CSS format with only
             three characters, or the regular six character length.
-        v (Sequence[int, int, int]):
-            3-tuple of integers, representing a RGB color value.
+            Can also a 3-tuple of integers, representing Red, Green and Blue.
         include_number_sign (bool):
             Whether or not to prepend a number sign to the output string.
 
