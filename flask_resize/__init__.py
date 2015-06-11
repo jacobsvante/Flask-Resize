@@ -230,14 +230,15 @@ def parse_rgb(v, include_number_sign=True):
     Args:
         v (str):
             A RGB color value in hex representation, may or may not start
-            with a number sign ("#").
-        v (Sequence[int]):
+            with a number sign ("#"). Can be in short CSS format with only
+            three characters, or the regular six character length.
+        v (Sequence[int, int, int]):
             3-tuple of integers, representing a RGB color value.
         include_number_sign (bool):
             Whether or not to prepend a number sign to the output string.
 
     Returns:
-        str: A hex representation of the passed in RGB value
+        str: A full hex representation of the passed in RGB value
     """
     if isinstance(v, tuple):
         v = ''.join('{:02x}'.format(d) for d in v)
