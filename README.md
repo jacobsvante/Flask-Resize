@@ -10,12 +10,12 @@
 [![Coverage Status](https://coveralls.io/repos/jmagnusson/Flask-Resize/badge.svg?branch=master)](https://coveralls.io/r/jmagnusson/Flask-Resize?branch=master)
 [![Code Health](https://landscape.io/github/jmagnusson/Flask-Resize/master/landscape.svg?style=flat)](https://landscape.io/github/jmagnusson/Flask-Resize/master)
 
-Created by [Jacob Magnusson](https://twitter.com/jacobsvante_).
-
 
 ## About
 
 Flask extension for automating the resizing of images in your templates. Can convert to/from JPEG/PNG, resize to fit and crop.
+
+Created by [Jacob Magnusson](https://twitter.com/jacobsvante_).
 
 ## Installation
 
