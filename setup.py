@@ -9,8 +9,6 @@ See https://github.com/jmagnusson/Flask-Resize for usage.
 
 """
 from __future__ import print_function
-from pip.req import parse_requirements
-from pip.download import PipSession
 from setuptools import setup, find_packages
 
 
@@ -24,8 +22,6 @@ with open(metadata_relpath) as fh:
     metadata = {}
     exec(fh.read(), globals(), metadata)
 
-requirements = parse_requirements('requirements.txt', session=PipSession())
-
 setup(
     name=appname,
     version=metadata['__version__'],
@@ -38,7 +34,11 @@ setup(
             'fonts/*.ttf',
         ],
     },
-    install_requires=[str(ir.req) for ir in requirements],
+    install_requires=[
+        'Pillow',
+        'pilkit',
+        'Flask',
+    ],
     entry_points={
         'console_scripts': {},
     },
@@ -56,5 +56,9 @@ setup(
         'Programming Language :: Python',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
         'Topic :: Software Development :: Libraries :: Python Modules',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
     ],
 )

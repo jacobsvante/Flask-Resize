@@ -1,6 +1,7 @@
 .tox/
 .coverage
 *.egg-info/
+docs/_build
 dist/
 MANIFEST
 .tox
