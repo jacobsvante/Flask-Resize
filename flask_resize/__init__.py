@@ -24,13 +24,14 @@ def parse_dimensions(dimensions):
             width and height.
 
     Raises:
-        :class:`exc.InvalidDimensionsError`: If the dimensions couldn't be
-            parsed.
-        :class:`exc.MissingDimensionsError`: If no width or height could be
-            parsed from the string.
+        :class:`exc.InvalidDimensionsError`:
+            If the dimensions couldn't be parsed.
+        :class:`exc.MissingDimensionsError`:
+            If no width or height could be parsed from the string.
 
     Returns:
-        Tuple[int, int]: Width and height.
+        Tuple[:class:`int`, :class:`int`]:
+            Width and height.
     """
 
     if isinstance(dimensions, string_types):
@@ -54,10 +55,12 @@ def _extract_relative_path(image_path):
     """Extract path relative to the app setting `RESIZE_URL`
 
     Args:
-        image_path (str): Path that may or may not start with `RESIZE_URL`
+        image_path (str):
+            Path that may or may not start with `RESIZE_URL`
 
     Returns:
-        str: The relative path
+        str:
+            The relative path
     """
     resize_url = current_app.config['RESIZE_URL']
 
@@ -84,7 +87,8 @@ def _construct_relative_cache_path(filename, ext, *path_parts):
             Usually image settings such as width, height, format etc.
 
     Returns:
-        str: The path to save the cached image to
+        str:
+            The path to save the cached image to
     """
     filename_no_ext, _, _ = filename.rpartition('.')
     filename = u'.'.join((filename_no_ext, ext))
@@ -107,11 +111,12 @@ def _parse_anchor(value):
             The value to turn into an Anchor. "top_left" becomes "tl".
 
     Raises:
-        :class:`exc.InvalidResizeSettingError`: If an invalid anchor value
-                                                was passed.
+        :class:`exc.InvalidResizeSettingError`:
+            If an invalid anchor value was passed.
 
     Returns:
-        str: The Anchor value (such as Anchor.TOP_LEFT which is 'tl')
+        str:
+            The Anchor value (such as Anchor.TOP_LEFT which is 'tl')
     """
     valid_anchor_values = [a for a in vars(Anchor) if a[0].isupper()]
     anchor_attr = value.upper().replace('-', '_')
@@ -131,8 +136,9 @@ def _mkdir_p(path):
             Path containing directories to create
 
     Raises:
-        OSError: If some underlying error occurs when calling os.makedirs,
-                 that is not errno.EEXIST.
+        OSError:
+            If some underlying error occurs when calling :func:`os.makedirs`,
+            that is not errno.EEXIST.
     """
     try:
         os.makedirs(path)
@@ -153,11 +159,12 @@ def _parse_format(image_path, format=None):
             This format is assumed if argument is not None
 
     Raises:
-        :class:`exc.UnsupportedImageFormatError`: If an unsupported image
-                                                  format was encountered.
+        :class:`exc.UnsupportedImageFormatError`:
+            If an unsupported image format was encountered.
 
     Returns:
-        str: Format of supplied image
+        str:
+            Format of supplied image
     """
     if not format:
         _, _, format = image_path.rpartition('.')
@@ -175,7 +182,8 @@ def _get_package_path(relpath):
     """Get the full path for a file within the package
 
     Args:
-        relpath (str): A path contained within the flask_resize
+        relpath (str):
+            A path contained within the flask_resize
 
     Returns:
         str: Full path for the file requested
@@ -196,11 +204,12 @@ def create_placeholder_img(width=None, height=None, placeholder_reason=None):
             Text to add to the center of the placeholder image.
 
     Raises:
-        :class:`exc.MissingDimensionsError`: If neither `width` nor `height`
-                                             are provided.
+        :class:`exc.MissingDimensionsError`:
+            If neither `width` nor `height` are provided.
 
     Returns:
-        PIL.Image: The placeholder image.
+        PIL.Image:
+            The placeholder image.
     """
     if width is None and height is None:
         raise exc.MissingDimensionsError("Specify at least one of `width` "
@@ -237,7 +246,8 @@ def parse_rgb(v, include_number_sign=True):
             Whether or not to prepend a number sign to the output string.
 
     Returns:
-        str: A full hex representation of the passed in RGB value
+        str:
+            A full hex representation of the passed in RGB value
     """
     if isinstance(v, tuple):
         v = ''.join('{:02x}'.format(d) for d in v)
@@ -258,7 +268,8 @@ def make_opaque(img, bgcolor):
             A :func:`parse_rgb` parseable value to use as background color.
 
     Returns:
-        PIL.Image: A new image with the background color applied.
+        PIL.Image:
+            A new image with the background color applied.
     """
     bgcolor = ImageColor.getrgb(parse_rgb(bgcolor))
     processor = MakeOpaque(background_color=bgcolor)
@@ -304,11 +315,12 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             A text to show the user if the image path could not be found.
 
     Raises:
-        :class:`exc.ImageNotFoundError`: If the source image cannot be found
-                                         or is not a file.
+        :class:`exc.ImageNotFoundError`:
+            If the source image cannot be found or is not a file.
 
     Returns:
-        PIL.Image: The generated image.
+        PIL.Image:
+            The generated image.
     """
     _mkdir_p(outpath.rpartition('/')[0])
     if not os.path.isfile(inpath):
@@ -341,19 +353,20 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
 
 
 def _strip_str(s):
-    """Strip non-letters/digits from passed in string
+    """Strip non-letters/digits from passed in string.
     Args:
         s (str):
             The string to strip.
 
     Returns:
-        str: A "safe" version of the passed in string
+        str:
+            A "safe" version of the passed in string.
     """
     return re.sub('\W', '-', s)
 
 
 def safe_placeholder_filename(orig_filename, ext='png'):
-    """Strip non-letters/digits from filename and append extension to filename
+    """Strip non-letters/digits from filename and append extension to filename.
 
     Args:
         orig_filename (str):
@@ -362,7 +375,8 @@ def safe_placeholder_filename(orig_filename, ext='png'):
             File extension to append to the filename
 
     Returns:
-        str: A "safe" version of the passed in filename
+        str:
+            A "safe" version of the passed in filename.
     """
     return '{}.{}'.format(_strip_str(orig_filename), ext)
 
@@ -404,14 +418,16 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
             couldn't be found.
 
     Raises:
-        :class:`exc.EmptyImagePathError`: If an empty image path was received.
-        :class:`exc.ImageNotFoundError`: If the image could not be found.
-        :class:`exc.MissingDimensionsError`: If ``fill`` argument was True,
-                                             but width or height was not
-                                             passed.
+        :class:`exc.EmptyImagePathError`:
+            If an empty image path was received.
+        :class:`exc.ImageNotFoundError`:
+            If the image could not be found.
+        :class:`exc.MissingDimensionsError`:
+            If ``fill`` argument was True, but width or height was not passed.
 
     Returns:
-        str: URL to the generated and cached image.
+        str:
+            URL to the generated and cached image.
 
     Examples:
         Generate an image from the supplied image URL that will fit
@@ -541,7 +557,8 @@ class Resize(object):
                 The Flask app to configure.
 
         Raises:
-            RuntimeError: A setting wasn't specified, or was invalid.
+            RuntimeError:
+                A setting wasn't specified, or was invalid.
         """
         app.jinja_env.filters['resize'] = resize
         app.config.setdefault('RESIZE_NOOP', False)
