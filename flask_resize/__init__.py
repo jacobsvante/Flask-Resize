@@ -542,8 +542,7 @@ class Resize(object):
                 The Flask app to configure.
 
         Raises:
-            RuntimeError:
-                A setting wasn't specified, or was invalid.
+            RuntimeError: A setting wasn't specified, or was invalid.
         """
         app.jinja_env.filters['resize'] = resize
         app.config.setdefault('RESIZE_NOOP', False)
