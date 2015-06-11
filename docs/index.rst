@@ -35,9 +35,9 @@ Flask extension for automating the resizing of images in your templates. Can con
   :target: https://coveralls.io/r/jmagnusson/Flask-Resize?branch=master
    :alt: Code coverage
 
-.. image:: https://landscape.io/github/jmagnusson/Flask-Resize/master/landscape.png
+.. image:: https://landscape.io/github/jmagnusson/Flask-Resize/master/landscape.svg?style=flat
    :target: https://landscape.io/github/jmagnusson/Flask-Resize/master
-   :alt: Code health
+   :alt: Code Health
 
 
 .. toctree::
