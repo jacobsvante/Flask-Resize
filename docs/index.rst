@@ -31,9 +31,9 @@ Flask extension for automating the resizing of images in your templates. Can con
     :target: https://pypi.python.org/pypi/Flask-Resize/
     :alt: PyPI status (alpha/beta/stable)
 
-.. image:: https://coveralls.io/repos/jmagnusson/Flask-Resize/badge.png?branch=master
-  :target: https://coveralls.io/r/jmagnusson/Flask-Resize?branch=master
-   :alt: Code coverage
+.. image:: https://coveralls.io/repos/jmagnusson/Flask-Resize/badge.svg?branch=master
+    :target: https://coveralls.io/r/jmagnusson/Flask-Resize?branch=master
+    :alt: Code coverage
 
 .. image:: https://landscape.io/github/jmagnusson/Flask-Resize/master/landscape.svg?style=flat
    :target: https://landscape.io/github/jmagnusson/Flask-Resize/master

@@ -7,7 +7,7 @@
 [![Available as wheel](https://img.shields.io/pypi/wheel/Flask-Resize.svg)](https://pypi.python.org/pypi/Flask-Resize/)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/Flask-Resize.svg)](https://pypi.python.org/pypi/Flask-Resize/)
 [![PyPI status (alpha/beta/stable)](https://img.shields.io/pypi/status/Flask-Resize.svg)](https://pypi.python.org/pypi/Flask-Resize/)
-![image](https://coveralls.io/repos/jmagnusson/Flask-Resize/badge.png?branch=master)
+[![Coverage Status](https://coveralls.io/repos/jmagnusson/Flask-Resize/badge.svg?branch=master)](https://coveralls.io/r/jmagnusson/Flask-Resize?branch=master)
 [![Code Health](https://landscape.io/github/jmagnusson/Flask-Resize/master/landscape.svg?style=flat)](https://landscape.io/github/jmagnusson/Flask-Resize/master)
 
 Created by [Jacob Magnusson](https://twitter.com/jacobsvante_), 2013. Full list of contributors can be found [here](CONTRIBUTORS.md).
