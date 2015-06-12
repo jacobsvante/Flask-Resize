@@ -74,6 +74,7 @@ There are also some optional settings (defaults listed below):
     RESIZE_HASH_METHOD = 'md5'
 
 .. code:: python
+
     # Useful when testing. Makes Flask-Resize skip all processing and just
     # return the original image.
     RESIZE_NOOP = False
