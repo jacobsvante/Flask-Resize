@@ -51,26 +51,29 @@ def parse_dimensions(dimensions):
     return tuple((int(d) if d else None) for d in dims)
 
 
-def _extract_relative_path(image_path):
-    """Extract path relative to the app setting `RESIZE_URL`
+def _extract_relative_path(base_url, image_path):
+    """Extract path relative to the base url, without leading slash
 
     Args:
+        base_url (str):
+            The base url to remove
         image_path (str):
-            Path that may or may not start with `RESIZE_URL`
+            Path that may or may not start with ``base_url``
 
     Returns:
         str:
             The relative path
     """
-    resize_url = current_app.config['RESIZE_URL']
 
-    if image_path.startswith(resize_url):
-        image_path = image_path[len(resize_url):]
+    if image_path.startswith(base_url):
+        image_path = image_path[len(base_url):]
 
     return image_path[1:] if image_path.startswith('/') else image_path
 
 
-def _construct_relative_cache_path(filename, ext, *path_parts):
+def _construct_relative_cache_path(filename, ext, *path_parts,
+                                   cache_dir='cache', hash_filename=True,
+                                   hash_method='md5'):
     """Construct a path to use for the cached version of a generated image
 
     If the app setting `RESIZE_HASH_FILENAME` is True (default) then a hash
@@ -92,15 +95,15 @@ def _construct_relative_cache_path(filename, ext, *path_parts):
     """
     filename_no_ext, _, _ = filename.rpartition('.')
     filename = u'.'.join((filename_no_ext, ext))
-    cache_dir = current_app.config['RESIZE_CACHE_DIR']
     cache_path = u'/'.join(_strip_str(str(p)) for p in filter(None, path_parts))
 
-    if current_app.config['RESIZE_HASH_FILENAME']:
-        hash = hashlib.new(current_app.config['RESIZE_HASH_METHOD'])
+    if hash_filename:
+        hash = hashlib.new(hash_method)
         hash.update(b(cache_path + filename))
-        return u'{0}/{1}.{2}'.format(cache_dir, hash.hexdigest(), ext)
+        s = u'{0}/{1}.{2}'.format(cache_dir, hash.hexdigest(), ext)
     else:
-        return os.path.join(cache_dir, cache_path, filename)
+        s = os.path.join(cache_dir, cache_path, filename)
+    return s
 
 
 def _parse_anchor(value):
@@ -459,7 +462,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
     else:
         placeholder_reason = None
 
-    root_relative_path = _extract_relative_path(image_url)
+    root_relative_path = _extract_relative_path(resize_url, image_url)
     original_path = os.path.join(resize_root, root_relative_path)
 
     if os.path.isfile(original_path):
@@ -486,8 +489,13 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         'upscale' if upscale else 'no-upscale',
         parse_rgb(bgcolor, include_number_sign=False) if bgcolor else '',
     ])
-    cache_path = _construct_relative_cache_path(filename, format.lower(),
-                                                *cache_path_args)
+
+    cache_path = _construct_relative_cache_path(
+        filename, format.lower(), *cache_path_args,
+        cache_dir=current_app.config['RESIZE_CACHE_DIR'],
+        hash_filename=current_app.config['RESIZE_HASH_FILENAME'],
+        hash_method=current_app.config['RESIZE_HASH_METHOD'])
+
     full_cache_url = os.path.join(resize_url, cache_path)
     full_cache_path = os.path.join(resize_root, cache_path)
 
