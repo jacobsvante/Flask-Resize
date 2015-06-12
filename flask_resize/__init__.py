@@ -577,10 +577,10 @@ class Resize(object):
         if app.config['RESIZE_NOOP']:
             return  # No RESIZE_URL or RESIZE_ROOT need to be specified.
 
-        if 'RESIZE_URL' not in app.config:
-            raise RuntimeError('You must specify RESIZE_URL.')
-        if 'RESIZE_ROOT' not in app.config:
-            raise RuntimeError('You must specify RESIZE_ROOT.')
+        if not isinstance(app.config.get('RESIZE_URL'), string_types):
+            raise RuntimeError('You must specify a valid RESIZE_URL.')
+        if not isinstance(app.config.get('RESIZE_ROOT'), string_types):
+            raise RuntimeError('You must specify a valid RESIZE_ROOT.')
 
         resize_root = app.config['RESIZE_ROOT']
 
