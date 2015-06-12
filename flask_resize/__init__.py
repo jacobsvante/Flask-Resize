@@ -71,9 +71,7 @@ def _extract_relative_path(base_url, image_path):
     return image_path[1:] if image_path.startswith('/') else image_path
 
 
-def _construct_relative_cache_path(filename, ext, *path_parts,
-                                   cache_dir='cache', hash_filename=True,
-                                   hash_method='md5'):
+def _construct_relative_cache_path(filename, ext, *path_parts, **opts):
     """Construct a path to use for the cached version of a generated image
 
     If the app setting `RESIZE_HASH_FILENAME` is True (default) then a hash
@@ -93,6 +91,9 @@ def _construct_relative_cache_path(filename, ext, *path_parts,
         str:
             The path to save the cached image to
     """
+    cache_dir = opts.pop('cache_dir', 'cache')
+    hash_filename = opts.pop('hash_filename', True)
+    hash_method = opts.pop('hash_method', 'md5')
     filename_no_ext, _, _ = filename.rpartition('.')
     filename = u'.'.join((filename_no_ext, ext))
     cache_path = u'/'.join(_strip_str(str(p)) for p in filter(None, path_parts))
