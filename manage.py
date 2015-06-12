@@ -9,6 +9,21 @@ def cli():
     pass
 
 
+@click.command()
+@click.option('-p', '--push-tag', help='git push the tag', is_flag=True)
+def gittag(push_tag):
+    from flask_resize import metadata
+    v = metadata.__version__
+    retcode = subp.call(['git', 'tag', '-a', '%s' % v, '-m', 'Version %s' % v])
+    if push_tag and retcode == 0:
+        subp.call(['git', 'push', '--tags'])
+
+
+@click.command()
+def release():
+    subp.call(['python', 'setup.py', 'sdist', 'bdist_wheel', 'upload'])
+
+
 @click.group(name='docs', chain=True)
 def docs():
     pass
@@ -34,4 +49,8 @@ if __name__ == '__main__':
     docs.add_command(build)
     docs.add_command(serve)
     cli.add_command(docs)
+
+    cli.add_command(gittag)
+    cli.add_command(release)
+
     cli()
