@@ -55,3 +55,35 @@ def test_resize_filter():
     with app.test_client() as c:
         resp = c.get('/')
         assert expected_url in resp.get_data(True)
+
+
+def test_fill_dimensions():
+    resize_root, images, filenames = create_tmp_images()
+    white_img_fn, black_img_fn = filenames
+    generated_img = fr.generate_image(
+        op.join(resize_root, black_img_fn),
+        op.join(resize_root, 'resized_black1.png'),
+        width=600, height=700, format=fr.PNG, fill=True
+    )
+    assert generated_img.width == 600
+    assert generated_img.height == 700
+    assert generated_img.getpixel((0, 0))[3] == 0  # Transparent
+
+    generated_img = fr.generate_image(
+        op.join(resize_root, black_img_fn),
+        op.join(resize_root, 'resized_black2.jpg'),
+        width=600, height=700, format=fr.JPEG, fill=True,
+    )
+    assert generated_img.width == 600
+    assert generated_img.height == 700
+    assert generated_img.getpixel((0, 0)) == (255, 255, 255, 255)
+
+    generated_img = fr.generate_image(
+        op.join(resize_root, black_img_fn),
+        op.join(resize_root, 'resized_black3.jpg'),
+        width=600, height=700, format=fr.JPEG, fill=True,
+        bgcolor=(100, 100, 100),
+    )
+    assert generated_img.width == 600
+    assert generated_img.height == 700
+    assert generated_img.getpixel((0, 0)) == (100, 100, 100, 255)

@@ -1,8 +1,9 @@
+import warnings
 import errno
 import hashlib
 import os
 import re
-from pilkit.processors import Anchor, ResizeToFit, ResizeToFill, MakeOpaque
+from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
 from pilkit.utils import save_image
 from flask import current_app
 from PIL import Image, ImageDraw, ImageFont, ImageColor
@@ -305,9 +306,7 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             original if the request width and/or height is bigger than its
             dimensions. Defaults to True.
         anchor (str):
-            Only matters if ``fill`` is also set. This specifies what should
-            be the anchor, i.e. the part of the image that should be retained.
-            Possible values are "center", "top_left" etc...
+            Deprecated since Flask-Resize 0.6.
         quality (int):
             Quality of the output image, if the format is JPEG. Defaults to 80.
         bgcolor (Optional[:class:`str`]):
@@ -326,6 +325,12 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
         PIL.Image:
             The generated image.
     """
+    if anchor:
+        warnings.warn(
+            "anchor has been deprecated in Flask-Resize 0.6 and doesn't do anything to the image. Will be removed in 1.0.",
+            DeprecationWarning
+        )
+
     _mkdir_p(outpath.rpartition('/')[0])
     if not os.path.isfile(inpath):
         if placeholder_reason:
@@ -337,11 +342,16 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
     processor_kwargs = dict(width=width, height=height, upscale=upscale)
 
     if fill:
-        processor_kwargs['anchor'] = anchor
+        if bgcolor:
+            mat_color = ImageColor.getrgb(parse_rgb(bgcolor))
+        elif format == JPEG:
+            mat_color = (255, 255, 255, 255)  # White
+        else:
+            mat_color = (0, 0, 0, 0)  # Transparent
+        processor_kwargs['mat_color'] = mat_color  # Transparent
 
-    ResizeMethod = ResizeToFill if fill else ResizeToFit
-    processor = ResizeMethod(**processor_kwargs)
-    new_img = processor.process(img)
+    processor = ResizeToFit(**processor_kwargs)
+    img = processor.process(img)
 
     assert (not os.path.exists(outpath)), 'Path to save to already exists'
 
@@ -350,10 +360,11 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
         options.update({'quality': int(quality), 'progressive': progressive})
 
     if bgcolor is not None:
-        new_img = make_opaque(new_img, bgcolor)
+        img = make_opaque(img, bgcolor)
 
     with open(outpath, 'wb') as outfile:
-        save_image(new_img, outfile, format=format, options=options)
+        save_image(img, outfile, format=format, options=options)
+    return img
 
 
 def _strip_str(s):
@@ -414,9 +425,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
             Whether to use progressive encoding or not when JPEG is the
             output format.
         anchor (str):
-            Only matters if ``fill`` is also set. This specifies what should
-            be the anchor, i.e. the part of the image that should be retained.
-            Possible values are "center", "top_left" etc...
+            Deprecated since Flask-Resize 0.6.
         placeholder (bool):
             Whether to show a placeholder if the specified ``image_url``
             couldn't be found.

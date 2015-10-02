@@ -6,7 +6,7 @@
 .coverage
 .env
 .python-version
-.tox
+.cache/
 .tox/
 .venv
 build/
