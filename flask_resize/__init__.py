@@ -520,7 +520,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                        anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
 
-    return full_cache_url
+    return full_cache_url.replace('\\', '/')
 
 
 class Resize(object):
