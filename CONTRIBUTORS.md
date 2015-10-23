@@ -2,4 +2,4 @@ Created by Jacob Magnusson, 2013
 
 ## Contributors
 
-@torrentails
+[torrentails](https://github.com/torrentails)
