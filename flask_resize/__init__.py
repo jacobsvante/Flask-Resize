@@ -351,9 +351,9 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
     original_width, original_height = img.size
     w = width or original_width
     h = height or original_height
-    if not force_cache and format == _parse_format(inpath) and fill == False:
+    if not force_cache and format == _parse_format(inpath) and fill is False:
         if (w == original_width and h == original_height) or \
-           (upscale == False and \
+           (upscale is False and \
            (w >= original_width or h >= original_height)):
             raise exc.StopImageGeneration()
 
@@ -536,7 +536,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         raise exc.MissingDimensionsError('Fill requires both width and height '
                                          'to be set.')
 
-   if not os.path.exists(full_cache_path):
+    if not os.path.exists(full_cache_path):
         try:
             generate_image(inpath=original_path, outpath=full_cache_path,
                            format=format, width=width, height=height,
