@@ -20,3 +20,6 @@ class MissingDimensionsError(InvalidDimensionsError):
 
 class UnsupportedImageFormatError(InvalidResizeSettingError):
     """Raised when an unsupported image format is encountered."""
+
+class StopImageGeneration(Exception):
+    """Raised when the image generator does not need to do work."""

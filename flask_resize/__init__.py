@@ -283,7 +283,8 @@ def make_opaque(img, bgcolor):
 
 def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
                    fill=False, upscale=True, anchor=None, quality=80,
-                   bgcolor=None, progressive=True, placeholder_reason=None):
+                   bgcolor=None, progressive=True, placeholder_reason=None,
+                   force_cache=False):
     """Generate an image with the passed in settings
     This is used by :func:`resize` and is run outside of the Flask context.
 
@@ -316,10 +317,18 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             output format.
         placeholder_reason (Optional[:class:`str`]):
             A text to show the user if the image path could not be found.
+        force_cache (bool):
+            Whether to force the function to always use the image cache. If
+            false, will reaise a :class:`exc.StopImageGeneration` if the
+            generated image would be the same as the original. Defaults to
+            False.
 
     Raises:
         :class:`exc.ImageNotFoundError`:
             If the source image cannot be found or is not a file.
+        :class:`exc.StopImageGeneration`:
+            If force_cache is False and if the image transformation would
+            result in the same image as the original.
 
     Returns:
         PIL.Image:
@@ -331,7 +340,6 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             DeprecationWarning
         )
 
-    _mkdir_p(outpath.rpartition('/')[0])
     if not os.path.isfile(inpath):
         if placeholder_reason:
             img = create_placeholder_img(width, height, placeholder_reason)
@@ -339,7 +347,18 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             raise exc.ImageNotFoundError(inpath)
     else:
         img = Image.open(inpath)
+
+    original_width, original_height = img.size
+    w = width or original_width
+    h = height or original_height
+    if not force_cache and format == _parse_format(inpath) and fill == False:
+        if (w == original_width and h == original_height) or \
+           (upscale == False and \
+           (w >= original_width or h >= original_height)):
+            raise exc.StopImageGeneration()
+
     processor_kwargs = dict(width=width, height=height, upscale=upscale)
+    _mkdir_p(outpath.rpartition('/')[0])
 
     if fill:
         if bgcolor:
@@ -398,7 +417,7 @@ def safe_placeholder_filename(orig_filename, ext='png'):
 
 def resize(image_url, dimensions, format=None, quality=80, fill=False,
            bgcolor=None, upscale=True, progressive=True, anchor='center',
-           placeholder=False):
+           placeholder=False, force_cahce=False):
     """Jinja filter for resizing, converting and caching images.
 
     Args:
@@ -429,6 +448,10 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         placeholder (bool):
             Whether to show a placeholder if the specified ``image_url``
             couldn't be found.
+        force_cache (bool):
+            Whether to force the image generator to always use the image
+            cache, even if the transformation would return the same image.
+            If false, will return the original image path. Defaults to False.
 
     Raises:
         :class:`exc.EmptyImagePathError`:
@@ -513,12 +536,17 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         raise exc.MissingDimensionsError('Fill requires both width and height '
                                          'to be set.')
 
-    if not os.path.exists(full_cache_path):
-        generate_image(inpath=original_path, outpath=full_cache_path,
-                       format=format, width=width, height=height,
-                       bgcolor=bgcolor, upscale=upscale, fill=fill,
-                       anchor=anchor, quality=quality, progressive=progressive,
-                       placeholder_reason=placeholder_reason)
+   if not os.path.exists(full_cache_path):
+        try:
+            generate_image(inpath=original_path, outpath=full_cache_path,
+                           format=format, width=width, height=height,
+                           bgcolor=bgcolor, upscale=upscale, fill=fill,
+                           anchor=anchor, quality=quality,
+                           progressive=progressive,
+                           placeholder_reason=placeholder_reason,
+                           force_cache=force_cache)
+        except exc.StopImageGeneration:
+            return unicode(resize_url+image_url)
 
     return full_cache_url.replace('\\', '/')
 
