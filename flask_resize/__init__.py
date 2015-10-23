@@ -417,7 +417,7 @@ def safe_placeholder_filename(orig_filename, ext='png'):
 
 def resize(image_url, dimensions, format=None, quality=80, fill=False,
            bgcolor=None, upscale=True, progressive=True, anchor='center',
-           placeholder=False, force_cahce=False):
+           placeholder=False, force_cache=False):
     """Jinja filter for resizing, converting and caching images.
 
     Args:
