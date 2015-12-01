@@ -19,10 +19,10 @@ def parse_dimensions(dimensions):
     """Parse the Flask-Resize image dimensions format string/2-tuple
 
     Args:
-        dimensions (:class:`str`, Sequence[:class:`int`]):
+        dimensions (:class:`str`, :class:`int`, Sequence[:class:`int`]):
             Can be a string in format ``<width>x<height>``, ``<width>``,
-            ``<width>x``, or ``x<height>``. Or a 2-tuple of ints containg
-            width and height.
+            ``<width>x``, or ``x<height>``. Or an int of width or a
+            2-tuple of ints containg width and height.
 
     Raises:
         :class:`exc.InvalidDimensionsError`:
@@ -42,7 +42,11 @@ def parse_dimensions(dimensions):
         dims = [d or None for d in dims]
 
     else:
-        dims = [i for i in dimensions]
+        # Not sure if you want it coded this way but better to ask forgiveness
+        try:
+            dims = [i for i in dimensions]
+        except TypeError:
+            dims = (dimensions, None)
 
     if not any(dims) or len(dims) < 2:
         raise exc.MissingDimensionsError(dimensions)
@@ -198,7 +202,8 @@ def _get_package_path(relpath):
 
 
 def create_placeholder_img(width=None, height=None, placeholder_reason=None):
-    """Create a placeholder image that specified its width and height, and an optional text.
+    """Create a placeholder image with specified width and height, and an
+    optional text.
 
     Args:
         width (Optional[:class:`str`]):
