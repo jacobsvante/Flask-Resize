@@ -1,17 +1,54 @@
 Changelog
 =========
 
-0.6.0 (2016-10-01)
+0.7.0 (2015-12-03)
+------------------
+
+-  **Feature** A path to a default image can now be specified to be
+   used as the background for any generated placeholders.
+-  **Improvement** Placeholder text now correctly wraps to fit within
+   the placeholder's width.
+-  **Change** Made placeholder generated solid background darker
+-  **Change** Moved placeholder text to the bottom of the generated image
+
+0.6.4 (2015-12-02)
+------------------
+
+-  **Improvement** Allowed the passing of a single integer
+   representing the width.
+
+0.6.3 (2015-10-24)
+------------------
+
+-  **Bugfix** Fixed typos in parts of the code, causing Flask-Resize
+   to fail under certain circumstances.
+
+0.6.2 (2015-10-24)
+------------------
+
+-  **Feature** Adds the ``force_cache`` to force generating/using
+   cache images, even if the generated image is the same size as the
+   original image.
+-  **Improvement** Now returns the original image path by default if the
+   to be generated image is the same size as the original and if no
+   other processing is needed.
+
+0.6.1 (2015-10-22)
+------------------
+
+- **Bugfix** Now generates correct path output on Windows systems
+
+0.6.0 (2015-10-01)
 ------------------
 
 - **Bugfix** Fill doesn't cut the image any more
 
-0.5.2 (2016-06-12)
+0.5.2 (2015-06-12)
 ------------------
 
 - **Bugfix** Fix Python 2 regression
 
-0.5.1 (2016-06-12)
+0.5.1 (2015-06-12)
 ------------------
 
 - **Improvement** Tests that actually convert images with the :func:`flask_resize.resize` command.

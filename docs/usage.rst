@@ -122,3 +122,6 @@ Default: False
 Whether to force the image generator to always use the image cache, even
 if the transformation would return the same image. If false, will return
 the original image path.
+
+.. versionadded:: 0.6.2
+   ``force_cache`` was added.

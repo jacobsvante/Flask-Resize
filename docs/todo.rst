@@ -1,11 +1,6 @@
 To-do
 =====
 
-Automatic fitting of placeholder text
--------------------------------------
-
-See `issue #7 <https://flask-resize.readthedocs.org/en/latest/changelog.html>`_.
-
 Add more tests
 --------------
 
@@ -18,4 +13,4 @@ Generate images directly instead of when web page is first hit.
 Windows
 -------
 
-Verify Windows support.
+Clean up path quirks all over the place to make it more os agnostic.

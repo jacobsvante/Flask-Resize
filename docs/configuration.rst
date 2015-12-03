@@ -81,3 +81,9 @@ There are also some optional settings (defaults listed below):
 
 .. versionadded:: 0.4.0
    ``RESIZE_NOOP`` was added.
+   
+Note for Windows users
+~~~~~~~~~~~~~~~~~~~~~~
+
+When specifying any path or url, you should always use Unix style path
+seperators. ie. Use forwardslash ``/`` instead of backslash ``\``
