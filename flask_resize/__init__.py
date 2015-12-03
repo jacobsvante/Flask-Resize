@@ -3,6 +3,7 @@ import errno
 import hashlib
 import os
 import re
+import textwrap
 from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
 from pilkit.utils import save_image
 from flask import current_app
@@ -13,6 +14,8 @@ from . import exc
 
 JPEG = 'JPEG'
 PNG = 'PNG'
+
+text_wrapper = textwrap.TextWrapper()
 
 
 def parse_dimensions(dimensions):
@@ -199,6 +202,33 @@ def _get_package_path(relpath):
     """
     pkgdir = os.path.dirname(__file__)
     return os.path.join(pkgdir, 'fonts', relpath)
+    
+    
+def _wrap_placeholder_text(text, max_width, draw_obj, font):
+    """Wraps a supplied text to try fit within a given width
+
+    Args:
+        text (str):
+            The text to wrap.
+        max_width (int):
+            The width to fit the text within.
+        draw_obj (:class:`PIL.ImageDraw.ImageDraw`]):
+            Draw object used for testing the text width
+        font (:class:`PIL.ImageFont.FreeTypeFont`):
+            Font to determine character width from.
+
+    Returns:
+        str: The wrapped text with new line characters.
+    """
+    avg_char_width = draw_obj.textsize(text, font=font)[0] / len(text)
+    text_wrapper.width = max_width / avg_char_width
+    new_text = text_wrapper.fill(text)
+
+    while draw_obj.textsize(new_text, font=font)[0] > max_width:
+        text_wrapper.width -= 1
+        new_text = text_wrapper.fill(text)
+
+    return new_text
 
 
 def create_placeholder_img(width=None, height=None, placeholder_reason=None):
@@ -231,14 +261,16 @@ def create_placeholder_img(width=None, height=None, placeholder_reason=None):
     if placeholder_reason is not None:
         placeholder_text += u' ({})'.format(placeholder_reason)
     text_fill = (255, ) * 3
-    bg_fill = (220, ) * 3
+    bg_fill = (192, ) * 3
     img = Image.new('RGB', (placeholder_width, placeholder_height), bg_fill)
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(_get_package_path('DroidSans.ttf'), size=36)
-    text_width, text_height = draw.textsize(placeholder_text, font=font)
+    font = ImageFont.truetype(_get_package_path('DroidSans.ttf'), size=22)
+    wrapped_text = _wrap_placeholder_text(placeholder_text,
+        placeholder_width, draw, font)
+    text_width, text_height = draw.textsize(wrapped_text, font=font)
     draw.text((((placeholder_width - text_width) / 2),
                ((placeholder_height - text_height) / 2)),
-              text=placeholder_text, font=font, fill=text_fill)
+              text=wrapped_text, font=font, fill=text_fill)
     del draw
     return img
 
@@ -504,11 +536,12 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
     original_path = os.path.join(resize_root, root_relative_path)
 
     if os.path.isfile(original_path):
-        _, _, filename = image_url.rpartition('/')
+        _, _, filename = image_url.replace('\\','/').rpartition('/')
         placeholder_reason = None
     else:
         if use_placeholder:
-            placeholder_reason = u'"{}" does not exist.'.format(original_path)
+            placeholder_reason = u'"{}" does not exist.'.format(
+                os.path.normpath(original_path))
             image_url = safe_placeholder_filename(placeholder_reason)
             filename = image_url
         else:
@@ -553,7 +586,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         except exc.StopImageGeneration:
             return unicode(resize_url+image_url)
 
-    return full_cache_url.replace('\\', '/')
+    return full_cache_url.replace('\\','/')
 
 
 class Resize(object):
@@ -625,7 +658,7 @@ class Resize(object):
         if not isinstance(app.config.get('RESIZE_ROOT'), string_types):
             raise RuntimeError('You must specify a valid RESIZE_ROOT.')
 
-        resize_root = app.config['RESIZE_ROOT']
+        resize_root = os.path.normpath(app.config['RESIZE_ROOT'])
 
         if not os.path.isdir(resize_root):
             raise RuntimeError('Your RESIZE_ROOT does not exist or is a '
