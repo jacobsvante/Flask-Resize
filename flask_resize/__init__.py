@@ -224,6 +224,7 @@ def _wrap_placeholder_text(text, max_width, draw_obj, font):
     text_wrapper.width = max_width / avg_char_width
     new_text = text_wrapper.fill(text)
 
+    # This would be easier and faster with a fixed width font
     while draw_obj.textsize(new_text, font=font)[0] > max_width:
         text_wrapper.width -= 1
         new_text = text_wrapper.fill(text)
@@ -260,8 +261,8 @@ def create_placeholder_img(width=None, height=None, placeholder_reason=None):
                                       placeholder_height)
     if placeholder_reason is not None:
         placeholder_text += u' ({})'.format(placeholder_reason)
-    text_fill = (255, ) * 3
-    bg_fill = (192, ) * 3
+    text_fill = (224, ) * 3
+    bg_fill = (128, ) * 3
     img = Image.new('RGB', (placeholder_width, placeholder_height), bg_fill)
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(_get_package_path('DroidSans.ttf'), size=22)
