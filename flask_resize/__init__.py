@@ -3,6 +3,7 @@ import errno
 import hashlib
 import os
 import re
+import textwrap
 from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
 from pilkit.utils import save_image
 from flask import current_app
@@ -14,15 +15,17 @@ from . import exc
 JPEG = 'JPEG'
 PNG = 'PNG'
 
+text_wrapper = textwrap.TextWrapper()
+
 
 def parse_dimensions(dimensions):
     """Parse the Flask-Resize image dimensions format string/2-tuple
 
     Args:
-        dimensions (:class:`str`, Sequence[:class:`int`]):
+        dimensions (:class:`str`, :class:`int`, Sequence[:class:`int`]):
             Can be a string in format ``<width>x<height>``, ``<width>``,
-            ``<width>x``, or ``x<height>``. Or a 2-tuple of ints containg
-            width and height.
+            ``<width>x``, or ``x<height>``. Or an int of width or a
+            2-tuple of ints containg width and height.
 
     Raises:
         :class:`exc.InvalidDimensionsError`:
@@ -42,7 +45,11 @@ def parse_dimensions(dimensions):
         dims = [d or None for d in dims]
 
     else:
-        dims = [i for i in dimensions]
+        # Not sure if you want it coded this way but better to ask forgiveness
+        try:
+            dims = [i for i in dimensions]
+        except TypeError:
+            dims = (dimensions, None)
 
     if not any(dims) or len(dims) < 2:
         raise exc.MissingDimensionsError(dimensions)
@@ -195,10 +202,40 @@ def _get_package_path(relpath):
     """
     pkgdir = os.path.dirname(__file__)
     return os.path.join(pkgdir, 'fonts', relpath)
+    
+    
+def _wrap_placeholder_text(text, max_width, draw_obj, font):
+    """Wraps a supplied text to try fit within a given width
+
+    Args:
+        text (str):
+            The text to wrap.
+        max_width (int):
+            The width to fit the text within.
+        draw_obj (:class:`PIL.ImageDraw.ImageDraw`]):
+            Draw object used for testing the text width
+        font (:class:`PIL.ImageFont.FreeTypeFont`):
+            Font to determine character width from.
+
+    Returns:
+        str: The wrapped text with new line characters.
+    """
+    avg_char_width = draw_obj.textsize(text, font=font)[0] / len(text)
+    text_wrapper.width = max_width / avg_char_width
+    new_text = text_wrapper.fill(text)
+
+    # This would be easier and faster with a fixed width font
+    while draw_obj.textsize(new_text, font=font)[0] > max_width:
+        text_wrapper.width -= 1
+        new_text = text_wrapper.fill(text)
+
+    return new_text
 
 
-def create_placeholder_img(width=None, height=None, placeholder_reason=None):
-    """Create a placeholder image that specified its width and height, and an optional text.
+def create_placeholder_img(width=None, height=None, placeholder_reason=None,
+                           placeholder_image_path=None):
+    """Create a placeholder image with specified width and height, and an
+    optional text.
 
     Args:
         width (Optional[:class:`str`]):
@@ -207,6 +244,8 @@ def create_placeholder_img(width=None, height=None, placeholder_reason=None):
             Height to use for the image. Will use `width` if not provided.
         placeholder_reason (Optional[:class:`str`]):
             Text to add to the center of the placeholder image.
+        placeholder_image_path (Optional[:class:`str`]):
+            The path to the image to use as the background of the placeholder.
 
     Raises:
         :class:`exc.MissingDimensionsError`:
@@ -226,14 +265,20 @@ def create_placeholder_img(width=None, height=None, placeholder_reason=None):
     if placeholder_reason is not None:
         placeholder_text += u' ({})'.format(placeholder_reason)
     text_fill = (255, ) * 3
-    bg_fill = (220, ) * 3
-    img = Image.new('RGB', (placeholder_width, placeholder_height), bg_fill)
+    bg_fill = (128, ) * 3
+    if placeholder_image_path is not None:
+        img = Image.open(placeholder_image_path)
+        placeholder_width, placeholder_height = img.size
+    else:
+        img = Image.new('RGB', (placeholder_width, placeholder_height), bg_fill)
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype(_get_package_path('DroidSans.ttf'), size=36)
-    text_width, text_height = draw.textsize(placeholder_text, font=font)
+    font = ImageFont.truetype(_get_package_path('DroidSans.ttf'), size=22)
+    wrapped_text = _wrap_placeholder_text(placeholder_text,
+        placeholder_width, draw, font)
+    text_width, text_height = draw.textsize(wrapped_text, font=font)
     draw.text((((placeholder_width - text_width) / 2),
-               ((placeholder_height - text_height) / 2)),
-              text=placeholder_text, font=font, fill=text_fill)
+               ((placeholder_height - text_height) - 10)),
+              text=wrapped_text, font=font, fill=text_fill)
     del draw
     return img
 
@@ -283,7 +328,8 @@ def make_opaque(img, bgcolor):
 
 def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
                    fill=False, upscale=True, anchor=None, quality=80,
-                   bgcolor=None, progressive=True, placeholder_reason=None):
+                   bgcolor=None, progressive=True, force_cache=False,
+                   placeholder_reason=None, placeholder_image_path=None):
     """Generate an image with the passed in settings
     This is used by :func:`resize` and is run outside of the Flask context.
 
@@ -314,12 +360,22 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
         progressive (bool):
             Whether to use progressive encoding or not when JPEG is the
             output format.
+        force_cache (bool):
+            Whether to force the function to always use the image cache. If
+            false, will reaise a :class:`exc.StopImageGeneration` if the
+            generated image would be the same as the original. Defaults to
+            False.
         placeholder_reason (Optional[:class:`str`]):
             A text to show the user if the image path could not be found.
+        placeholder_image_path (Optional[:class:`str`]):
+            The path to the image to use as the background of the placeholder.
 
     Raises:
         :class:`exc.ImageNotFoundError`:
             If the source image cannot be found or is not a file.
+        :class:`exc.StopImageGeneration`:
+            If force_cache is False and if the image transformation would
+            result in the same image as the original.
 
     Returns:
         PIL.Image:
@@ -331,15 +387,27 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             DeprecationWarning
         )
 
-    _mkdir_p(outpath.rpartition('/')[0])
     if not os.path.isfile(inpath):
         if placeholder_reason:
-            img = create_placeholder_img(width, height, placeholder_reason)
+            img = create_placeholder_img(width, height, placeholder_reason,
+                                         placeholder_image_path)
         else:
             raise exc.ImageNotFoundError(inpath)
     else:
         img = Image.open(inpath)
+
+    original_width, original_height = img.size
+    w = width or original_width
+    h = height or original_height
+    if not force_cache and format == _parse_format(inpath) and fill is False:
+        if (w == original_width and h == original_height) or \
+           (upscale is False and \
+           (w >= original_width or h >= original_height)):
+            if not placeholder_reason:
+                raise exc.StopImageGeneration()
+
     processor_kwargs = dict(width=width, height=height, upscale=upscale)
+    _mkdir_p(outpath.replace('\\','/').rpartition('/')[0])
 
     if fill:
         if bgcolor:
@@ -398,7 +466,7 @@ def safe_placeholder_filename(orig_filename, ext='png'):
 
 def resize(image_url, dimensions, format=None, quality=80, fill=False,
            bgcolor=None, upscale=True, progressive=True, anchor='center',
-           placeholder=False):
+           placeholder=False, force_cache=False):
     """Jinja filter for resizing, converting and caching images.
 
     Args:
@@ -426,9 +494,14 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
             output format.
         anchor (str):
             Deprecated since Flask-Resize 0.6.
-        placeholder (bool):
+        placeholder (bool|str):
             Whether to show a placeholder if the specified ``image_url``
-            couldn't be found.
+            couldn't be found.  If supplied as a string, the image generator
+            will use it as the background image of the placeholder.
+        force_cache (bool):
+            Whether to force the image generator to always use the image
+            cache, even if the transformation would return the same image.
+            If false, will return the original image path. Defaults to False.
 
     Raises:
         :class:`exc.EmptyImagePathError`:
@@ -476,13 +549,22 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
     original_path = os.path.join(resize_root, root_relative_path)
 
     if os.path.isfile(original_path):
-        _, _, filename = image_url.rpartition('/')
+        _, _, filename = image_url.replace('\\','/').rpartition('/')
         placeholder_reason = None
+        placeholder_image_path = None
     else:
         if use_placeholder:
-            placeholder_reason = u'"{}" does not exist.'.format(original_path)
+            placeholder_reason = u'"{}" does not exist.'.format(
+                os.path.normpath(original_path))
             image_url = safe_placeholder_filename(placeholder_reason)
             filename = image_url
+            if isinstance(use_placeholder, string_types):
+                placeholder_relative_path = _extract_relative_path(
+                                            resize_url, use_placeholder)
+                placeholder_image_path = os.path.join(resize_root,
+                                         placeholder_relative_path)
+            else:
+                placeholder_image_path = None
         else:
             raise exc.ImageNotFoundError(original_path)
 
@@ -514,13 +596,19 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                                          'to be set.')
 
     if not os.path.exists(full_cache_path):
-        generate_image(inpath=original_path, outpath=full_cache_path,
-                       format=format, width=width, height=height,
-                       bgcolor=bgcolor, upscale=upscale, fill=fill,
-                       anchor=anchor, quality=quality, progressive=progressive,
-                       placeholder_reason=placeholder_reason)
+        try:
+            generate_image(inpath=original_path, outpath=full_cache_path,
+                           format=format, width=width, height=height,
+                           bgcolor=bgcolor, upscale=upscale, fill=fill,
+                           anchor=anchor, quality=quality,
+                           progressive=progressive,
+                           force_cache=force_cache,
+                           placeholder_reason=placeholder_reason,
+                           placeholder_image_path=placeholder_image_path)
+        except exc.StopImageGeneration:
+            return unicode(resize_url+image_url)
 
-    return full_cache_url
+    return full_cache_url.replace('\\','/')
 
 
 class Resize(object):
@@ -592,7 +680,7 @@ class Resize(object):
         if not isinstance(app.config.get('RESIZE_ROOT'), string_types):
             raise RuntimeError('You must specify a valid RESIZE_ROOT.')
 
-        resize_root = app.config['RESIZE_ROOT']
+        resize_root = os.path.normpath(app.config['RESIZE_ROOT'])
 
         if not os.path.isdir(resize_root):
             raise RuntimeError('Your RESIZE_ROOT does not exist or is a '

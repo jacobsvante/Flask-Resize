@@ -43,6 +43,10 @@ The placeholder will contain text specifying dimensions, and reason for
 image not being generated (either ``empty image path`` or
 ``<filepath> does not exist``)
 
+You can specify a string containing the relative path to an image to use
+as the background of the placeholder, or just set to ``True`` to use a
+plain grey background.
+
 format
 ~~~~~~
 
@@ -109,3 +113,15 @@ Default: True
 Whether to use progressive or not. Only matters if the output format is
 jpeg. `Article about progressive
 JPEGs <http://www.yuiblog.com/blog/2008/12/05/imageopt-4/>`__.
+
+force_cache
+~~~~~~~~~~~
+
+Default: False
+
+Whether to force the image generator to always use the image cache, even
+if the transformation would return the same image. If false, will return
+the original image path.
+
+.. versionadded:: 0.6.2
+   ``force_cache`` was added.
