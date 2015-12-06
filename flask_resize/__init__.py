@@ -275,7 +275,6 @@ def create_placeholder_img(width=None, height=None, placeholder_reason=None,
     font = ImageFont.truetype(_get_package_path('DroidSans.ttf'), size=22)
     wrapped_text = _wrap_placeholder_text(placeholder_text,
         placeholder_width, draw, font)
-    print wrapped_text
     text_width, text_height = draw.textsize(wrapped_text, font=font)
     draw.text((((placeholder_width - text_width) / 2),
                ((placeholder_height - text_height) - 10)),
