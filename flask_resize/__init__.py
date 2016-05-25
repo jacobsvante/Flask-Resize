@@ -3,7 +3,7 @@ import errno
 import hashlib
 import os
 import re
-from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
+from pilkit.processors import Anchor, ResizeToFit, ResizeToFill, MakeOpaque
 from pilkit.utils import save_image
 from flask import current_app
 from PIL import Image, ImageDraw, ImageFont, ImageColor
@@ -350,7 +350,9 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             mat_color = (0, 0, 0, 0)  # Transparent
         processor_kwargs['mat_color'] = mat_color  # Transparent
 
-    processor = ResizeToFit(**processor_kwargs)
+        processor = ResizeToFit(**processor_kwargs)
+    else:
+        processor = ResizeToFill(**processor_kwargs)
     img = processor.process(img)
 
     assert (not os.path.exists(outpath)), 'Path to save to already exists'
