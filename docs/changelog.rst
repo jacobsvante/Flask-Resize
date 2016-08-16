@@ -1,17 +1,17 @@
 Changelog
 =========
 
-0.6.0 (2016-10-01)
+0.6.0 (2015-10-01)
 ------------------
 
 - **Bugfix** Fill doesn't cut the image any more
 
-0.5.2 (2016-06-12)
+0.5.2 (2015-06-12)
 ------------------
 
 - **Bugfix** Fix Python 2 regression
 
-0.5.1 (2016-06-12)
+0.5.1 (2015-06-12)
 ------------------
 
 - **Improvement** Tests that actually convert images with the :func:`flask_resize.resize` command.
