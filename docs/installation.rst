@@ -13,7 +13,7 @@ Development version
 
 .. code:: sh
 
-    pip install -e git+https://github.com/jmagnusson/flask-resize@master#egg=Flask-Resize $(which python)
+    pip install -e git+https://github.com/jmagnusson/flask-resize@master#egg=Flask-Resize
 
 Compatibility
 -------------
