@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.0 (2016-09-01)
+------------------
+
+- Keep ICC profile from source image
+- Clarify that Python 3.5 is supported
+
 0.6.0 (2015-10-01)
 ------------------
 

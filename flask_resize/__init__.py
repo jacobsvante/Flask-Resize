@@ -355,7 +355,10 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
 
     assert (not os.path.exists(outpath)), 'Path to save to already exists'
 
-    options = {}
+    options = {
+        'icc_profile': img.info.get('icc_profile'),
+    }
+
     if format == JPEG:
         options.update({'quality': int(quality), 'progressive': progressive})
 
