@@ -18,7 +18,7 @@ Development version
 Compatibility
 -------------
 
-Known to work with Python 2.7 / 3.4 and Flask 0.10. Will probably not work on Windows as there are some differences in how paths are handled.
+Tested with Python 2.7/3.3+ and with latest version of Flask. Will probably not work on Windows as there are some differences in how paths are handled.
 
 Running the tests
 -----------------
