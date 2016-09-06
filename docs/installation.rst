@@ -27,7 +27,7 @@ Running the tests
 
     git clone https://github.com/jmagnusson/Flask-Resize.git
     cd Flask-Resize
-    pip install -r requirements.txt -r requirements_test.txt
+    pip install '.[svg,test]'
 
 Generating the docs
 -------------------
@@ -36,7 +36,7 @@ Generating the docs
 
     git clone https://github.com/jmagnusson/Flask-Resize.git
     cd Flask-Resize
-    pip install -r requirements.txt -r requirements_docs.txt
+    pip install '.[docs]'
     python manage.py docs clean build serve
 
 Now you should be able to view the docs @ `localhost:8000 <http://localhost:8000>`_.

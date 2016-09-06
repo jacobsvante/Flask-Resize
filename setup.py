@@ -22,6 +22,20 @@ with open(metadata_relpath) as fh:
     metadata = {}
     exec(fh.read(), globals(), metadata)
 
+svg_requirements = ['cairosvg']
+docs_requirements = [
+    'click>=6.6',
+    'sphinx-autobuild>=0.6.0',
+    'sphinx-rtd-theme>=0.1.9',
+    'sphinx>=1.4.6',
+    'sphinxcontrib-napoleon>=0.5.3',
+]
+test_requirements = [
+    'coverage>=4.2',
+    'coveralls>=1.1',
+    'pytest>=3.0.2',
+]
+
 setup(
     name=appname,
     version=metadata['__version__'],
@@ -39,6 +53,11 @@ setup(
         'pilkit',
         'Flask',
     ],
+    extras_require={
+        'svg': svg_requirements,
+        'docs': docs_requirements,
+        'test': test_requirements,
+    },
     entry_points={
         'console_scripts': {},
     },
