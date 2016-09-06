@@ -7,10 +7,11 @@ python:
   - 3.4
   - 3.5
 env:
-  - PACKAGES="'.[test]'"
-  - PACKAGES="'.[svg,test]'"
+  - WITH_SVG=0
+  - WITH_SVG=1
 install:
-    - pip install $PACKAGES
+    - if [[ $WITH_SVG == '0' ]]; then pip install '.[test]'; fi
+    - if [[ $WITH_SVG == '1' ]]; then pip install '.[svg,test]'; fi
 script: coverage run --source=flask_resize -m py.test -v
 after_success:
     - coveralls
