@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.8.0 (2016-09-07)
+------------------
+
+- Support SVG as input format by utilizing [CairoSVG](http://cairosvg.org/).
+
 0.7.0 (2016-09-01)
 ------------------
 

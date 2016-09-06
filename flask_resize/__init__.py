@@ -1,18 +1,24 @@
-import warnings
 import errno
 import hashlib
+import io
 import os
 import re
-from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
-from pilkit.utils import save_image
+import warnings
+
 from flask import current_app
 from PIL import Image, ImageDraw, ImageFont, ImageColor
-from .metadata import __version_info__, __version__  # NOQA
-from ._compat import b, string_types
+from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
+from pilkit.utils import save_image
+
 from . import exc
+from ._compat import b, cairosvg, string_types
+from .metadata import __version_info__, __version__  # NOQA
 
 JPEG = 'JPEG'
 PNG = 'PNG'
+SVG = 'SVG'
+SUPPORTED_OUTPUT_FILE_FORMATS = (JPEG, PNG)
+PROGRESSIVE_FORMATS = (PNG, SVG)
 
 
 def parse_dimensions(dimensions):
@@ -176,9 +182,12 @@ def _parse_format(image_path, format=None):
     format = format.upper()
     if format == 'JPG':
         format = JPEG
-    if format not in (JPEG, PNG):
+    if format == SVG:
+        format = PNG
+    if format not in SUPPORTED_OUTPUT_FILE_FORMATS:
         raise exc.UnsupportedImageFormatError(
-            "JPEG and PNG are the only supported formats at the moment."
+            "JPEG and PNG are the only supported output "
+            "file formats at the moment."
         )
     return format
 
@@ -281,6 +290,17 @@ def make_opaque(img, bgcolor):
     return processor.process(img)
 
 
+def convert_svg(path):
+    if cairosvg is None:
+        raise exc.CairoSVGImportError(
+            "CairoSVG must be installed for SVG input file support. "
+            "Package found @ https://pypi.python.org/pypi/CairoSVG."
+        )
+    with open(path, 'rb') as fp:
+        data = cairosvg.svg2png(file_obj=fp)
+        return Image.open(io.BytesIO(data))
+
+
 def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
                    fill=False, upscale=True, anchor=None, quality=80,
                    bgcolor=None, progressive=True, placeholder_reason=None):
@@ -313,7 +333,7 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             If specified this color will be used as background.
         progressive (bool):
             Whether to use progressive encoding or not when JPEG is the
-            output format.
+            output format. Defaults to True.
         placeholder_reason (Optional[:class:`str`]):
             A text to show the user if the image path could not be found.
 
@@ -337,6 +357,8 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             img = create_placeholder_img(width, height, placeholder_reason)
         else:
             raise exc.ImageNotFoundError(inpath)
+    elif inpath.rpartition('.')[2].upper() == SVG:
+        img = convert_svg(inpath)
     else:
         img = Image.open(inpath)
     processor_kwargs = dict(width=width, height=height, upscale=upscale)
@@ -360,7 +382,7 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
     }
 
     if format == JPEG:
-        options.update({'quality': int(quality), 'progressive': progressive})
+        options.update(quality=int(quality), progressive=progressive)
 
     if bgcolor is not None:
         img = make_opaque(img, bgcolor)
@@ -412,7 +434,8 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
             Uses the format of :func:`parse_dimensions`.
         format (Optional[:class:`str`]):
             Format to convert into. Defaults to using the same format as the
-            original image.
+            original image. An exception to this default is when the source
+            image is of type SVG/SVGZ, then PNG is used as default.
         quality (int):
             Quality of the output image, if the format is JPEG. Defaults to 80.
         fill (bool):
@@ -426,7 +449,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
             dimensions. Defaults to True.
         progressive (bool):
             Whether to use progressive encoding or not when JPEG is the
-            output format.
+            output format. Defaults to True.
         anchor (str):
             Deprecated since Flask-Resize 0.6.
         placeholder (bool):
@@ -459,6 +482,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
 
             {{ original_image_url|resize('300x300', format='jpg') }}
     """
+
     if current_app.config['RESIZE_NOOP']:
         return image_url
 

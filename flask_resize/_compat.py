@@ -15,3 +15,9 @@ else:
 
     def b(s):
         return s
+
+
+try:
+    import cairosvg
+except ImportError:
+    cairosvg = None

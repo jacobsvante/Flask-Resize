@@ -1,7 +1,11 @@
 import os.path as op
+import tempfile
+
 import flask
-from .base import create_resizeapp, create_tmp_images
 import flask_resize as fr
+import pytest
+
+from .base import create_resizeapp, create_tmp_images
 
 
 def test_resize_with_hashing():
@@ -87,3 +91,55 @@ def test_fill_dimensions():
     assert generated_img.width == 600
     assert generated_img.height == 700
     assert generated_img.getpixel((0, 0)) == (100, 100, 100, 255)
+
+
+SVG_DATA = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100px" height="100px" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs></defs>
+    <rect id="Rectangle" fill="#000000" x="0" y="0" width="100" height="100"></rect>
+</svg>"""
+
+
+@pytest.mark.skipif(
+    fr.cairosvg is None,
+    reason="CairoSVG 2.0 only supported in 3.4+"
+)
+def test_svg_resize():
+    resize_root = tempfile.mkdtemp()
+    svg_path = op.join(resize_root, 'test.svg')
+    with open(svg_path, 'w') as fp:
+        fp.write(SVG_DATA)
+
+    generated_img = fr.generate_image(
+        svg_path,
+        op.join(resize_root, 'out.png'),
+        format='png',
+        width=50,
+        height=50
+    )
+    assert generated_img.width == 50
+    assert generated_img.height == 50
+
+    expected = (0, 0, 0, 255)
+    assert generated_img.getpixel((0, 0)) == expected
+    assert generated_img.getpixel((49, 49)) == expected
+
+
+@pytest.mark.skipif(
+    fr.cairosvg is not None,
+    reason="Should only test CairoSVG import error when it isn't installed"
+)
+def test_svg_resize_cairosvgimporterror():
+    resize_root = tempfile.mkdtemp()
+    svg_path = op.join(resize_root, 'test.svg')
+    with open(svg_path, 'w') as fp:
+        fp.write('123')
+
+    with pytest.raises(fr.exc.CairoSVGImportError):
+        fr.generate_image(
+            svg_path,
+            op.join(resize_root, 'out.png'),
+            format='png',
+            width=50,
+            height=50
+        )

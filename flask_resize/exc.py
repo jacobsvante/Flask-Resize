@@ -19,4 +19,8 @@ class MissingDimensionsError(InvalidDimensionsError):
 
 
 class UnsupportedImageFormatError(InvalidResizeSettingError):
-    """Raised when an unsupported image format is encountered."""
+    """Raised when an unsupported output image format is encountered."""
+
+
+class CairoSVGImportError(ImportError):
+    """Raised when an SVG input file is encountered but CairoSVG is not installed."""
