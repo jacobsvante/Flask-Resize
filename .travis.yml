@@ -1,13 +1,14 @@
 language: python
 sudo: false
+cache: pip
 python:
   - 2.7
   - 3.3
   - 3.4
   - 3.5
 env:
-  - PACKAGES='.[test]'
-  - PACKAGES='.[svg,test]'
+  - PACKAGES="'.[test]'"
+  - PACKAGES="'.[svg,test]'"
 install:
     - pip install $PACKAGES
 script: coverage run --source=flask_resize -m py.test -v
