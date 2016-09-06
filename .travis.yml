@@ -1,18 +1,22 @@
 language: python
 sudo: false
 cache: pip
+
 python:
   - 2.7
   - 3.3
   - 3.4
   - 3.5
+
 env:
-  - PACKAGES='.[test]'
-  - PACKAGES='.[svg,test]'
+  - REQUIREMENTS=
+  - REQUIREMENTS=svg
+
 install:
-    - pip freeze
-    - pip install -U setuptools
-    - pip install $PACKAGES
-script: coverage run --source=flask_resize -m py.test -v
+    - pip install tox
+
+script:
+    - tox -e py-$REQUIREMENTS
+
 after_success:
     - coveralls
