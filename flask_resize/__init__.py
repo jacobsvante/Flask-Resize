@@ -661,3 +661,18 @@ class Resize(object):
         if os.path.isfile(CATALOG_FILE):
             with open(CATALOG_FILE, 'rb') as f:
                 image_catalog = pickle.load(f)
+
+                # check if pickled file is a dict
+                catalog_valid = isinstance(image_catalog, dict)
+
+                # check each item is an ImageCatalogItem
+                if catalog_valid:
+                    for _, item in image_catalog.items():
+                        if not isinstance(item, ImageCatalogItem):
+                            catalog_valid = False
+                            break
+
+                # if image catalog from pickled file is not valid
+                # reset the catalog
+                if not catalog_valid:
+                    image_catalog = {}
