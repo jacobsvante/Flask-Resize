@@ -548,6 +548,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                                          'to be set.')
 
     # try to find image in catalog
+    global image_catalog
     image_changed = False
     image_catalog_item = image_catalog.get(original_path)
     if image_catalog_item is not None:
@@ -571,9 +572,9 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
 
         # add item to catalog and pickle
         global image_catalog
-        image_catalog[original_path]
+        image_catalog[original_path] = image_catalog_item
         with open(CATALOG_FILE, 'wb') as f:
-            pickle.dump(f, image_catalog_item)
+            pickle.dump(image_catalog, f)
 
     return full_cache_url
 
