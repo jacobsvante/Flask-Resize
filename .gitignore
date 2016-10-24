@@ -13,3 +13,5 @@ build/
 dist/
 docs/_build
 MANIFEST
+
+venv/

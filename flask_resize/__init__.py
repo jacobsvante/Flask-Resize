@@ -4,7 +4,9 @@ import io
 import os
 import re
 import warnings
+import pickle
 
+from collections import namedtuple
 from flask import current_app
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
@@ -19,6 +21,11 @@ PNG = 'PNG'
 SVG = 'SVG'
 SUPPORTED_OUTPUT_FILE_FORMATS = (JPEG, PNG)
 PROGRESSIVE_FORMATS = (PNG, SVG)
+CATALOG_FILE = 'resize_catalog.pkl'
+
+
+image_catalog = {}
+ImageCatalogItem = namedtuple('ImageCatalogItem', 'size modified_date')
 
 
 def parse_dimensions(dimensions):
@@ -540,12 +547,33 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         raise exc.MissingDimensionsError('Fill requires both width and height '
                                          'to be set.')
 
-    if not os.path.exists(full_cache_path):
+    # try to find image in catalog
+    image_changed = False
+    image_catalog_item = image_catalog.get(original_path)
+    if image_catalog_item is not None:
+        if os.path.getsize(original_path) != image_catalog_item.size:
+            image_changed = True
+        if os.path.getmtime(original_path) != image_catalog_item.modified_date:
+            image_changed = True
+
+    if image_changed or not os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
                        format=format, width=width, height=height,
                        bgcolor=bgcolor, upscale=upscale, fill=fill,
                        anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
+
+        # create a new catalog item
+        image_catalog_item = ImageCatalogItem(
+            os.path.getsize(original_path),
+            os.path.getmtime(original_path)
+        )
+
+        # add item to catalog and pickle
+        global image_catalog
+        image_catalog[original_path]
+        with open(CATALOG_FILE, 'wb') as f:
+            pickle.dump(f, image_catalog_item)
 
     return full_cache_url
 
@@ -626,3 +654,9 @@ class Resize(object):
                                'regular file.')
         if not resize_root.endswith('/'):
             app.config['RESIZE_ROOT'] = resize_root + '/'
+
+        # load image catalog if exists
+        global image_catalog
+        if os.path.isfile(CATALOG_FILE):
+            with open(CATALOG_FILE, 'rb') as f:
+                image_catalog = pickle.load(f)
