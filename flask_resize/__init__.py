@@ -358,13 +358,13 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             DeprecationWarning
         )
 
-    _mkdir_p(outpath.rpartition('/')[0])
+    _mkdir_p(os.path.split(outpath)[0])
     if not os.path.isfile(inpath):
         if placeholder_reason:
             img = create_placeholder_img(width, height, placeholder_reason)
         else:
             raise exc.ImageNotFoundError(inpath)
-    elif inpath.rpartition('.')[2].upper() == SVG:
+    elif os.path.splitext(inpath)[1][1:].upper() == SVG:
         img = convert_svg(inpath)
     else:
         img = Image.open(inpath)
