@@ -558,17 +558,10 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                        anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
 
-        # create a new catalog item
-        image_catalog_item = ImageCatalogItem(
-            os.path.getsize(original_path),
-            os.path.getmtime(original_path)
-        )
+        _add_image_to_catalog(original_path)
 
-        # add item to catalog and pickle
-        global image_catalog
-        image_catalog[original_path] = image_catalog_item
-        with open(CATALOG_FILE, 'wb') as f:
-            pickle.dump(image_catalog, f)
+    if original_path not in image_catalog:
+        _add_image_to_catalog(original_path)
 
     return full_cache_url
 
@@ -584,6 +577,22 @@ def _image_changed(original_path, full_cache_path):
     if (os.path.getsize(original_path) != image_catalog_item.size or
             os.path.getmtime(original_path) != image_catalog_item.modified_date):
         return True
+
+
+def _add_image_to_catalog(original_path):
+    global image_catalog
+
+    # create a new catalog item
+    image_catalog_item = ImageCatalogItem(
+        os.path.getsize(original_path),
+        os.path.getmtime(original_path)
+    )
+
+    # add item to catalog and pickle
+    image_catalog[original_path] = image_catalog_item
+
+    with open(CATALOG_FILE, 'wb') as f:
+        pickle.dump(image_catalog, f)
 
 
 class Resize(object):
