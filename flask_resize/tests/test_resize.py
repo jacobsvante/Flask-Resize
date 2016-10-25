@@ -184,7 +184,3 @@ def test_resize_filter_on_changed_image():
         new_hash.update(f.read())
 
     assert(old_hash.hexdigest() != new_hash.hexdigest())
-
-
-if __name__ == '__main__':
-    test_resize_filter_on_changed_image()

@@ -547,18 +547,8 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         raise exc.MissingDimensionsError('Fill requires both width and height '
                                          'to be set.')
 
-    # try to find image in catalog
-    global image_catalog
-    image_changed = False
-    image_catalog_item = image_catalog.get(original_path)
-    if image_catalog_item is not None:
-        if os.path.getsize(original_path) != image_catalog_item.size:
-            image_changed = True
-        if os.path.getmtime(original_path) != image_catalog_item.modified_date:
-            image_changed = True
-
-    # if image has changed remove old cache file
-    if image_changed:
+    # check if image has already been rendered and if it has changed since
+    if _image_changed(original_path, full_cache_path):
         os.remove(full_cache_path)
 
     if not os.path.exists(full_cache_path):
@@ -581,6 +571,19 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
             pickle.dump(image_catalog, f)
 
     return full_cache_url
+
+
+def _image_changed(original_path, full_cache_path):
+    # try to find image in catalog
+    global image_catalog
+    image_catalog_item = image_catalog.get(original_path)
+
+    if image_catalog_item is None:
+        return False
+
+    if (os.path.getsize(original_path) != image_catalog_item.size or
+            os.path.getmtime(original_path) != image_catalog_item.modified_date):
+        return True
 
 
 class Resize(object):

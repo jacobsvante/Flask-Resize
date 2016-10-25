@@ -14,5 +14,6 @@ dist/
 docs/_build
 MANIFEST
 
+htmlcov/
 venv/
 *.pkl
