@@ -561,7 +561,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
     if image_changed:
         os.remove(full_cache_path)
 
-    if os.path.exists(full_cache_path):
+    if not os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
                        format=format, width=width, height=height,
                        bgcolor=bgcolor, upscale=upscale, fill=fill,

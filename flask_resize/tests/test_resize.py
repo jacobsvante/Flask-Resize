@@ -2,6 +2,7 @@ import os
 import os.path as op
 import tempfile
 import shutil
+import hashlib
 
 import flask
 import flask_resize as fr
@@ -150,24 +151,40 @@ def test_svg_resize_cairosvgimporterror():
 def test_resize_filter_on_changed_image():
     resize_url = 'http://test.dev/'
     resize_root, images, filenames = create_tmp_images()
-    fn0, fn1, fn2 = filenames
+    fn0, fn1 = filenames
     app = create_resizeapp(RESIZE_URL=resize_url, RESIZE_ROOT=resize_root,
                            DEBUG=True)
     template = '<img src="{{ url_for("static", filename=fn)|resize("100x") }}">'
 
-    expected_path = fr._construct_relative_cache_path(fn0, 'png', 100, 'auto', 'no-fill', 'upscale')
-    expected_url = op.join(resize_url, expected_path)
+    fn0_path = op.join(resize_root, fr._construct_relative_cache_path(
+        fn0, 'png', 100, 'auto', 'no-fill', 'upscale')
+    )
 
     with app.test_request_context():
-        flask.render_template_string(template, fn=fn1)
+        flask.render_template_string(template, fn=fn0)
+
+    # creat hash for old file
+    old_hash = hashlib.md5()
+    with open(fn0_path, 'rb') as f:
+        old_hash.update(f.read())
 
     # remove old file
-    os.remove(fn1)
+    os.remove(op.join(resize_root, fn0))
 
     # replace by new file
-    shutil.copy(fn2, fn1)
+    shutil.copy(op.join(resize_root, fn1), op.join(resize_root, fn0))
 
     # rerender
-    flask.render_template_string(template, fn=fn1)
+    with app.test_request_context():
+        flask.render_template_string(template, fn=fn0)
+
+    # creat hash for new file
+    new_hash = hashlib.md5()
+    with open(fn0_path, 'rb') as f:
+        new_hash.update(f.read())
+
+    assert(old_hash.hexdigest() != new_hash.hexdigest())
 
 
+if __name__ == '__main__':
+    test_resize_filter_on_changed_image()
