@@ -557,7 +557,11 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         if os.path.getmtime(original_path) != image_catalog_item.modified_date:
             image_changed = True
 
-    if image_changed or not os.path.exists(full_cache_path):
+    # if image has changed remove old cache file
+    if image_changed:
+        os.remove(full_cache_path)
+
+    if os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
                        format=format, width=width, height=height,
                        bgcolor=bgcolor, upscale=upscale, fill=fill,
