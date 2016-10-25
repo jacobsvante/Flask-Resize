@@ -1,5 +1,7 @@
+import os
 import os.path as op
 import tempfile
+import shutil
 
 import flask
 import flask_resize as fr
@@ -143,3 +145,29 @@ def test_svg_resize_cairosvgimporterror():
             width=50,
             height=50
         )
+
+
+def test_resize_filter_on_changed_image():
+    resize_url = 'http://test.dev/'
+    resize_root, images, filenames = create_tmp_images()
+    fn0, fn1, fn2 = filenames
+    app = create_resizeapp(RESIZE_URL=resize_url, RESIZE_ROOT=resize_root,
+                           DEBUG=True)
+    template = '<img src="{{ url_for("static", filename=fn)|resize("100x") }}">'
+
+    expected_path = fr._construct_relative_cache_path(fn0, 'png', 100, 'auto', 'no-fill', 'upscale')
+    expected_url = op.join(resize_url, expected_path)
+
+    with app.test_request_context():
+        flask.render_template_string(template, fn=fn1)
+
+    # remove old file
+    os.remove(fn1)
+
+    # replace by new file
+    shutil.copy(fn2, fn1)
+
+    # rerender
+    flask.render_template_string(template, fn=fn1)
+
+
