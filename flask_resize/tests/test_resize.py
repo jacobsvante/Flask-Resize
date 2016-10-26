@@ -161,7 +161,7 @@ def test_resize_filter_on_changed_image():
     resize_root, images, filenames = create_tmp_images()
     fn0, fn1 = filenames
     app = create_resizeapp(RESIZE_URL=resize_url, RESIZE_ROOT=resize_root,
-                           DEBUG=True)
+                           DEBUG=True, RESIZE_TRACKING=True)
 
     template = (
         '<img src="{{ url_for("static", filename=fn)|resize("100x") }}">'
