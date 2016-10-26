@@ -555,6 +555,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
     tracking_enabled = current_app.config['RESIZE_TRACKING']
     if tracking_enabled and _image_changed(original_path, full_cache_path):
         os.remove(full_cache_path)
+        _remove_image_from_catalog(full_cache_path)
 
     if not os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
@@ -563,10 +564,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                        anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
 
-        if tracking_enabled:
-            _add_image_to_catalog(original_path, full_cache_path)
-
-    if tracking_enabled and original_path not in image_catalog:
+    if tracking_enabled and full_cache_path not in image_catalog:
         _add_image_to_catalog(original_path, full_cache_path)
 
     return full_cache_url
@@ -600,6 +598,11 @@ def _add_image_to_catalog(original_path, full_cache_path):
 
     with open(catalog_path, 'wb') as f:
         pickle.dump(image_catalog, f)
+
+
+def _remove_image_from_catalog(full_cache_path):
+    global image_catalog
+    image_catalog.pop(full_cache_path)
 
 
 class Resize(object):
