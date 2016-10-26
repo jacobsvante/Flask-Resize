@@ -27,6 +27,7 @@ CATALOG_FILE = 'resize_catalog.pkl'
 
 logger = logging.getLogger('flask_resize')
 
+catalog_path = ''
 image_catalog = {}
 ImageCatalogItem = namedtuple('ImageCatalogItem', 'original_path size modified_date')
 
@@ -595,7 +596,7 @@ def _add_image_to_catalog(original_path, full_cache_path):
     # add item to catalog and pickle
     image_catalog[full_cache_path] = image_catalog_item
 
-    with open(CATALOG_FILE, 'wb') as f:
+    with open(catalog_path, 'wb') as f:
         pickle.dump(image_catalog, f)
 
 
@@ -678,8 +679,11 @@ class Resize(object):
 
         # load image catalog if exists
         global image_catalog
-        if os.path.isfile(CATALOG_FILE):
-            with open(CATALOG_FILE, 'rb') as f:
+        global catalog_path
+        catalog_path = os.path.join(
+            resize_root, app.config['RESIZE_CACHE_DIR'], CATALOG_FILE)
+        if os.path.isfile(catalog_path):
+            with open(catalog_path, 'rb') as f:
                 try:
                     image_catalog = pickle.load(f)
                 except TypeError:
