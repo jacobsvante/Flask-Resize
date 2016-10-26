@@ -1,6 +1,7 @@
 import errno
 import hashlib
 import io
+import logging
 import os
 import re
 import warnings
@@ -24,8 +25,10 @@ PROGRESSIVE_FORMATS = (PNG, SVG)
 CATALOG_FILE = 'resize_catalog.pkl'
 
 
+logger = logging.getLogger('flask_resize')
+
 image_catalog = {}
-ImageCatalogItem = namedtuple('ImageCatalogItem', 'size modified_date')
+ImageCatalogItem = namedtuple('ImageCatalogItem', 'original_path size modified_date')
 
 
 def parse_dimensions(dimensions):
@@ -558,10 +561,10 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                        anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
 
-        _add_image_to_catalog(original_path)
+        _add_image_to_catalog(original_path, full_cache_path)
 
     if original_path not in image_catalog:
-        _add_image_to_catalog(original_path)
+        _add_image_to_catalog(original_path, full_cache_path)
 
     return full_cache_url
 
@@ -569,7 +572,7 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
 def _image_changed(original_path, full_cache_path):
     # try to find image in catalog
     global image_catalog
-    image_catalog_item = image_catalog.get(original_path)
+    image_catalog_item = image_catalog.get(full_cache_path)
 
     if image_catalog_item is None:
         return False
@@ -579,17 +582,18 @@ def _image_changed(original_path, full_cache_path):
         return True
 
 
-def _add_image_to_catalog(original_path):
+def _add_image_to_catalog(original_path, full_cache_path):
     global image_catalog
 
     # create a new catalog item
     image_catalog_item = ImageCatalogItem(
+        original_path,
         os.path.getsize(original_path),
         os.path.getmtime(original_path)
     )
 
     # add item to catalog and pickle
-    image_catalog[original_path] = image_catalog_item
+    image_catalog[full_cache_path] = image_catalog_item
 
     with open(CATALOG_FILE, 'wb') as f:
         pickle.dump(image_catalog, f)
@@ -676,7 +680,11 @@ class Resize(object):
         global image_catalog
         if os.path.isfile(CATALOG_FILE):
             with open(CATALOG_FILE, 'rb') as f:
-                image_catalog = pickle.load(f)
+                try:
+                    image_catalog = pickle.load(f)
+                except TypeError:
+                    logger.error('Error reading image catalog.')
+                    image_catalog = {}
 
                 # check if pickled file is a dict
                 catalog_valid = isinstance(image_catalog, dict)
