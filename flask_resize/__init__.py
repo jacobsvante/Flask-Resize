@@ -1,7 +1,6 @@
 import errno
 import hashlib
 import io
-import logging
 import os
 import re
 import warnings
@@ -14,6 +13,7 @@ from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
 from pilkit.utils import save_image
 
 from . import exc
+from .lookup import Lookup
 from ._compat import b, cairosvg, string_types
 from .metadata import __version_info__, __version__  # NOQA
 
@@ -22,14 +22,6 @@ PNG = 'PNG'
 SVG = 'SVG'
 SUPPORTED_OUTPUT_FILE_FORMATS = (JPEG, PNG)
 PROGRESSIVE_FORMATS = (PNG, SVG)
-CATALOG_FILE = 'resize_catalog.pkl'
-
-
-logger = logging.getLogger('flask_resize')
-
-catalog_path = ''
-image_catalog = {}
-ImageCatalogItem = namedtuple('ImageCatalogItem', 'original_path size modified_date')
 
 
 def parse_dimensions(dimensions):
@@ -552,10 +544,11 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                                          'to be set.')
 
     # check if image has already been rendered and if it has changed since
-    tracking_enabled = current_app.config['RESIZE_TRACKING']
-    if tracking_enabled and _image_changed(original_path, full_cache_path):
-        os.remove(full_cache_path)
-        _remove_image_from_catalog(full_cache_path)
+    lookup_enabled = current_app.config['RESIZE_LOOKUP']
+    if lookup_enabled:
+        lookup = current_app.extensions['resize_lookup']
+        if lookup.has_image_changed(original_path, full_cache_path):
+            os.remove(full_cache_path)
 
     if not os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
@@ -564,44 +557,17 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
                        anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
 
-    if tracking_enabled and full_cache_path not in image_catalog:
-        _add_image_to_catalog(original_path, full_cache_path)
+    if lookup_enabled:
+        lookup.update(original_path, full_cache_path)
 
     return full_cache_url
 
-
-def _image_changed(original_path, full_cache_path):
-    # try to find image in catalog
-    global image_catalog
-    image_catalog_item = image_catalog.get(full_cache_path)
-
-    if image_catalog_item is None:
-        return False
-
-    if (os.path.getsize(original_path) != image_catalog_item.size or
-            os.path.getmtime(original_path) != image_catalog_item.modified_date):
-        return True
-
-
-def _add_image_to_catalog(original_path, full_cache_path):
-    global image_catalog
-
-    # create a new catalog item
-    image_catalog_item = ImageCatalogItem(
-        original_path,
-        os.path.getsize(original_path),
-        os.path.getmtime(original_path)
-    )
-
-    # add item to catalog and pickle
-    image_catalog[full_cache_path] = image_catalog_item
-
-    with open(catalog_path, 'wb') as f:
-        pickle.dump(image_catalog, f)
-
-
 def _remove_image_from_catalog(full_cache_path):
-    global image_catalog
+    ctx = stack.top
+    if not hasattr(ctx, 'flask_resize_catalog'):
+        return
+    image_catalog = ctx.flask_resize_catalog
+
     image_catalog.pop(full_cache_path)
 
 
@@ -665,7 +631,8 @@ class Resize(object):
         app.config.setdefault('RESIZE_CACHE_DIR', 'cache')
         app.config.setdefault('RESIZE_HASH_FILENAME', True)
         app.config.setdefault('RESIZE_HASH_METHOD', 'md5')
-        app.config.setdefault('RESIZE_TRACKING', True)
+        app.config.setdefault('RESIZE_LOOKUP', True)
+        app.config.setdefault('RESIZE_LOOKUP_FILENAME', 'resize_lookup.sqlite')
 
         if app.config['RESIZE_NOOP']:
             return  # No RESIZE_URL or RESIZE_ROOT need to be specified.
@@ -684,30 +651,9 @@ class Resize(object):
             app.config['RESIZE_ROOT'] = resize_root + '/'
 
         # if tracking is enabled load image catalog if exists
-        if app.config['RESIZE_TRACKING']:
-            global image_catalog
-            global catalog_path
-            catalog_path = os.path.join(
-                resize_root, app.config['RESIZE_CACHE_DIR'], CATALOG_FILE)
-            if os.path.isfile(catalog_path):
-                with open(catalog_path, 'rb') as f:
-                    try:
-                        image_catalog = pickle.load(f)
-                    except TypeError:
-                        logger.error('Error reading image catalog.')
-                        image_catalog = {}
+        if app.config['RESIZE_LOOKUP']:
+            lookup_path = os.path.join(
+                resize_root, app.config['RESIZE_LOOKUP_FILENAME']
+            )
 
-                    # check if pickled file is a dict
-                    catalog_valid = isinstance(image_catalog, dict)
-
-                    # check each item is an ImageCatalogItem
-                    if catalog_valid:
-                        for _, item in image_catalog.items():
-                            if not isinstance(item, ImageCatalogItem):
-                                catalog_valid = False
-                                break
-
-                    # if image catalog from pickled file is not valid
-                    # reset the catalog
-                    if not catalog_valid:
-                        image_catalog = {}
+            app.extensions['resize_lookup'] = Lookup(lookup_path)
