@@ -4,9 +4,7 @@ import io
 import os
 import re
 import warnings
-import pickle
 
-from collections import namedtuple
 from flask import current_app
 from PIL import Image, ImageDraw, ImageFont, ImageColor
 from pilkit.processors import Anchor, ResizeToFit, MakeOpaque

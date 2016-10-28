@@ -1,6 +1,5 @@
 import os.path as op
 import tempfile
-import hashlib
 
 import flask
 import flask_resize as fr
