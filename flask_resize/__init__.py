@@ -562,14 +562,6 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
 
     return full_cache_url
 
-def _remove_image_from_catalog(full_cache_path):
-    ctx = stack.top
-    if not hasattr(ctx, 'flask_resize_catalog'):
-        return
-    image_catalog = ctx.flask_resize_catalog
-
-    image_catalog.pop(full_cache_path)
-
 
 class Resize(object):
     """Used for initializing the ``resize`` jinja filter in the app.
@@ -653,7 +645,8 @@ class Resize(object):
         # if tracking is enabled load image catalog if exists
         if app.config['RESIZE_LOOKUP']:
             lookup_path = os.path.join(
-                resize_root, app.config['RESIZE_LOOKUP_FILENAME']
+                resize_root,
+                app.config['RESIZE_LOOKUP_FILENAME']
             )
 
             app.extensions['resize_lookup'] = Lookup(lookup_path)
