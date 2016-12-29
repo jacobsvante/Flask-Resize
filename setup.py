@@ -46,6 +46,7 @@ setup(
         'Pillow',
         'pilkit',
         'Flask',
+        'sqlitedict'
     ],
     extras_require={
         'svg': svg_requirements,

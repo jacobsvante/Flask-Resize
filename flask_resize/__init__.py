@@ -11,6 +11,7 @@ from pilkit.processors import Anchor, ResizeToFit, MakeOpaque
 from pilkit.utils import save_image
 
 from . import exc
+from .lookup import Lookup
 from ._compat import b, cairosvg, string_types
 from .metadata import __version_info__, __version__  # NOQA
 
@@ -351,13 +352,13 @@ def generate_image(inpath, outpath, width=None, height=None, format=JPEG,
             DeprecationWarning
         )
 
-    _mkdir_p(outpath.rpartition('/')[0])
+    _mkdir_p(os.path.split(outpath)[0])
     if not os.path.isfile(inpath):
         if placeholder_reason:
             img = create_placeholder_img(width, height, placeholder_reason)
         else:
             raise exc.ImageNotFoundError(inpath)
-    elif inpath.rpartition('.')[2].upper() == SVG:
+    elif os.path.splitext(inpath)[1][1:].upper() == SVG:
         img = convert_svg(inpath)
     else:
         img = Image.open(inpath)
@@ -540,12 +541,22 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         raise exc.MissingDimensionsError('Fill requires both width and height '
                                          'to be set.')
 
+    # check if image has already been rendered and if it has changed since
+    lookup_enabled = current_app.config['RESIZE_LOOKUP']
+    if lookup_enabled:
+        lookup = current_app.extensions['resize_lookup']
+        if lookup.has_image_changed(original_path, full_cache_path):
+            os.remove(full_cache_path)
+
     if not os.path.exists(full_cache_path):
         generate_image(inpath=original_path, outpath=full_cache_path,
                        format=format, width=width, height=height,
                        bgcolor=bgcolor, upscale=upscale, fill=fill,
                        anchor=anchor, quality=quality, progressive=progressive,
                        placeholder_reason=placeholder_reason)
+
+    if lookup_enabled:
+        lookup.update(original_path, full_cache_path)
 
     return full_cache_url
 
@@ -610,6 +621,8 @@ class Resize(object):
         app.config.setdefault('RESIZE_CACHE_DIR', 'cache')
         app.config.setdefault('RESIZE_HASH_FILENAME', True)
         app.config.setdefault('RESIZE_HASH_METHOD', 'md5')
+        app.config.setdefault('RESIZE_LOOKUP', True)
+        app.config.setdefault('RESIZE_LOOKUP_FILENAME', 'resize_lookup.sqlite')
 
         if app.config['RESIZE_NOOP']:
             return  # No RESIZE_URL or RESIZE_ROOT need to be specified.
@@ -626,3 +639,12 @@ class Resize(object):
                                'regular file.')
         if not resize_root.endswith('/'):
             app.config['RESIZE_ROOT'] = resize_root + '/'
+
+        # if tracking is enabled load image catalog if exists
+        if app.config['RESIZE_LOOKUP']:
+            lookup_path = os.path.join(
+                resize_root,
+                app.config['RESIZE_LOOKUP_FILENAME']
+            )
+
+            app.extensions['resize_lookup'] = Lookup(lookup_path)

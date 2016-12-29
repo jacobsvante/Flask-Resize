@@ -79,5 +79,18 @@ There are also some optional settings (defaults listed below):
     # return the original image.
     RESIZE_NOOP = False
 
+.. code:: python
+
+    # Flask_Resize automatically checks if the original images have changed
+    # and updates resized images in the cache if that happened. However
+    # the lookup function takes some additional resources and can be
+    # deactivated.
+    RESIZE_LOOKUP = True
+
+.. code:: python
+
+    # The filename for the lookup database file.
+    RESIZE_LOOKUP_FILENAME = 'resize_lookup.sqlite'
+
 .. versionadded:: 0.4.0
    ``RESIZE_NOOP`` was added.
