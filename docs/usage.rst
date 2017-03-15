@@ -87,19 +87,7 @@ Default: ``False``
 
 The default is to keep the ratio of the original image. With ``fill`` it
 will crop the image after resizing so that it will have exactly width
-and height as specified. The anchor-point can be changed with the
-``anchor`` option.
-
-anchor
-~~~~~~
-
-Default: ``center``
-
-Only matters if ``fill`` is also set. This specifies which part of the
-image that should be the anchor, i.e. which part that should be
-retained. Valid choices are ``top-left``, ``top``, ``top-right``,
-``bottom-left``, ``bottom``, ``bottom-right``, ``center``, ``left`` and
-``right``.
+and height as specified.
 
 progressive
 ~~~~~~~~~~~

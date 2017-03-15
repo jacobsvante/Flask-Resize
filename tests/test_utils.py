@@ -1,6 +1,7 @@
 import pytest
-from flask_resize import (exc, parse_dimensions, safe_placeholder_filename,
-                          parse_rgb)
+
+from flask_resize import exc
+from flask_resize.utils import parse_dimensions, parse_rgb
 
 
 def test_parse_dimensions():
@@ -26,11 +27,6 @@ def test_parse_dimensions():
     for missing_value in missing_values:
         with pytest.raises(exc.MissingDimensionsError):
             parse_dimensions(invalid)
-
-
-def test_safe_filename():
-    assert (safe_placeholder_filename('/var/run/myapp.pid') ==
-            '-var-run-myapp-pid.png')
 
 
 def test_parse_rgb():

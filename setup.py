@@ -3,12 +3,15 @@
 Flask-Resize
 ------------
 
-Flask extension for resizing images in templates.
+Flask extension for resizing images in code and templates.
 
 See https://github.com/jmagnusson/Flask-Resize for usage.
 
 """
 from __future__ import print_function
+
+import sys
+
 from setuptools import setup, find_packages
 
 
@@ -22,18 +25,17 @@ with open(metadata_relpath) as fh:
     metadata = {}
     exec(fh.read(), globals(), metadata)
 
-svg_requirements = ['cairosvg']
 test_requirements = [
-    'click>=6.6',
+    'click>=6.7',
     'coverage>=4.2',
-    'coveralls>=1.1',
-    'pytest>=3.0.2',
+    'flake8>=3.3.0',
+    'pytest>=3.0.7',
 ]
 
 setup(
     name=appname,
     version=metadata['__version__'],
-    description='Flask extension for resizing images in templates',
+    description='Flask extension for resizing images in code and templates',
     long_description=__doc__,
     packages=find_packages(),
     package_dir={pkgname: pkgname},
@@ -48,8 +50,15 @@ setup(
         'Flask',
     ],
     extras_require={
-        'svg': svg_requirements,
+        'svg': ['cairosvg'],
+        'redis': ['redis'],
+        's3': ['boto3'],
+        'full': (
+            ['redis', 's3'] +
+            ['cairosvg'] if sys.version_info >= (3, 4) else []
+        ),
         'test': test_requirements,
+        'test_s3': ['moto>=0.4.31'],
     },
     entry_points={
         'console_scripts': {},
@@ -60,7 +69,7 @@ setup(
     license='BSD',
     platforms='any',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',

@@ -1,21 +1,39 @@
 Changelog
 =========
 
+1.0.0 (2017-03-17)
+------------------
+
+Flask-Resize 1.0  🎊  🍻  🎈  🎉
+
+The big changes are:
+
+- **Feature** Support Amazon S3 as a storage backend
+- **Feature** Support Redis caching. The usefulness of this is threefold:
+    1. When using S3 as a storage backend to save on HTTP requests
+    2. No need to check if file exists on file storage backends - perhaps noticable on servers with slow disk IO
+    3. Much lower chance of multiple threads/processes trying to generate the
+       same image at the same time.
+- **Breaking** Please note that this release forces all generated images to be recreated because of a change in the creation of the "unique key" which is used to determine if the image has already been generated.
+- **Breaking** Drop RESIZE_HASH_FILENAME as an option - always hash the cache object's filename. Less moving parts in the machinery.
+- **Breaking** Rename RESIZE_CACHE_DIR to RESIZE_TARGET_DIRECTORY to better reflect what the setting does, now that we have Redis caching.
+- **Breaking** Use SHA1 as default filename hashing method for less likelyhood of collision
+
 0.8.0 (2016-10-01)
 ------------------
 
-- Release as a universal python wheel
+- **Improvement** Release as a universal python wheel
 
 0.8.0 (2016-09-07)
 ------------------
 
-- Support SVG as input format by utilizing [CairoSVG](http://cairosvg.org/).
+- **Feature** Support SVG as input format by utilizing [CairoSVG](http://cairosvg.org/).
 
 0.7.0 (2016-09-01)
 ------------------
 
-- Keep ICC profile from source image
-- Clarify that Python 3.5 is supported
+- **Improvement** Keep ICC profile from source image
+- **Minor fix** Clarify that Python 3.5 is supported
 
 0.6.0 (2015-10-01)
 ------------------
