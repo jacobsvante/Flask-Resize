@@ -1,6 +1,8 @@
 import flask
 import pytest
+
 from flask_resize import resize
+
 from .base import create_resizeapp
 
 
