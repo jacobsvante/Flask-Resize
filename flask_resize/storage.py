@@ -66,16 +66,28 @@ class FileStorage(Storage):
 
 class S3Storage(Storage):
 
-    def __init__(self, access_key, secret_key, bucket, region_name=None):
+    def __init__(
+        self,
+        bucket,
+        access_key=None,
+        secret_key=None,
+        region_name=None
+    ):
         if boto3 is None:
             raise exc.Boto3ImportError(
                 "boto3 must be installed for Amazon S3 support. "
                 "Package found @ https://pypi.python.org/pypi/boto3."
             )
-        self.access_key = access_key
-        self.secret_key = secret_key
+        default_session = botocore.session.get_session()
+        default_credentials = default_session.get_credentials()
+
         self.bucket_name = bucket
-        self.region_name = region_name
+        self.access_key = \
+            access_key or getattr(default_credentials, 'access_key', None)
+        self.secret_key = \
+            secret_key or getattr(default_credentials, 'secret_key', None)
+        self.region_name = \
+            region_name or default_session.get_config_variable('region')
         self.s3 = boto3.resource(
             's3',
             aws_access_key_id=access_key,
@@ -83,10 +95,25 @@ class S3Storage(Storage):
             region_name=region_name,
         )
         self.bucket = self.s3.Bucket(self.bucket_name)
+        self._verify_configuration()
 
     @property
     def base_url(self):
         return '/'.join([self.s3.meta.client._endpoint.host, self.bucket_name])
+
+    def _verify_configuration(self):
+        if self.access_key is None:
+            raise exc.InvalidResizeSettingError(
+                "Could not find S3 setting for access_key"
+            )
+        if self.secret_key is None:
+            raise exc.InvalidResizeSettingError(
+                "Could not find S3 setting for secret_key"
+            )
+        if self.region_name is None:
+            raise exc.InvalidResizeSettingError(
+                "Could not find S3 setting for region_name"
+            )
 
     def get(self, relative_path):
         if not relative_path:

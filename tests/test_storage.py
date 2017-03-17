@@ -40,9 +40,10 @@ def test_s3_storage():
     real_secret_key = os.environ.get('RESIZE_S3_SECRET_KEY')
     real_bucket_name = os.environ.get('RESIZE_S3_BUCKET')
     s3_storage = fr.storage.S3Storage(
-        access_key=real_access_key or 'test-access-key',
-        secret_key=real_secret_key or 'test-secret-key',
-        bucket=real_bucket_name or 'test-bucket',
+        real_bucket_name or 'test-bucket',
+        access_key=real_access_key,
+        secret_key=real_secret_key,
+        region_name='eu-central-1',
     )
 
     if not real_bucket_name:

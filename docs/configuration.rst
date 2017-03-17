@@ -51,13 +51,24 @@ You need to set at least two configuration options when using the default file-b
     # and with cookies turned off.
     RESIZE_URL = 'http://media.yoursite.com/'
 
-For Amazon S3 storage you need to configure at least the following:
+For Amazon S3 storage you only need to do the following if you've already
+configured Amazon Web Services with `aws configure` (or similar). Default
+section configuration can then be extracted using the `boto3` package.
 
 .. code:: python
 
-    RESIZE_S3_ACCESS_KEY = 'dq8rJLaMtkHEze4example3C1V'
-    RESIZE_S3_BUCKET = 'MC9T4tRqXQexample3d1l7C9sG3M9qes0VEHiNJTG24q4a5'
+    RESIZE_STORAGE_BACKEND = 's3'
     RESIZE_S3_SECRET_KEY = 'mybucket'
+
+If you haven't done so then you need to manually specify the following options:
+
+.. code:: python
+
+    RESIZE_STORAGE_BACKEND = 's3'
+    RESIZE_S3_ACCESS_KEY = 'dq8rJLaMtkHEze4example3C1V'
+    RESIZE_S3_SECRET_KEY = 'MC9T4tRqXQexample3d1l7C9sG3M9qes0VEHiNJTG24q4a5'
+    RESIZE_S3_REGION = 'eu-central-1'
+    RESIZE_S3_BUCKET = 'mybucket'
 
 .. versionadded:: 1.0.0
    ``RESIZE_S3_ACCESS_KEY``, ``RESIZE_S3_SECRET_KEY`` and ``RESIZE_S3_BUCKET`` were added.
@@ -71,7 +82,7 @@ There are also some optional settings. They are listed below, with their default
 
     # Where the resized images should be saved. Relative to `RESIZE_ROOT`
     # if using the file-based storage option.
-    RESIZE_CACHE_DIR = 'resized-images'
+    RESIZE_TARGET_DIRECTORY = 'resized-images'
 
     # Set to False if you want Flask-Resize to create sub-directories for
     # each resize setting instead of using a hash.
@@ -85,13 +96,8 @@ There are also some optional settings. They are listed below, with their default
     # return the original image URL.
     RESIZE_NOOP = False
 
-    # If S3 is to be used instead of the file-based storage. Defaults to True
-    # if all S3 settings are configured.
-    RESIZE_USE_S3 = (
-        app.config['RESIZE_S3_ACCESS_KEY'] and
-        app.config['RESIZE_S3_SECRET_KEY'] and
-        app.config['RESIZE_S3_BUCKET']
-    )
+    # Which backend to store files in. Defaults to the file backend. Can be either `file` or `s3`.
+    RESIZE_STORAGE_BACKEND = 'file'
 
     # Use redis as a cache if it's installed (`pip install
     # flask-resize[redis]`), otherwise use a no-op cache. Can be set
@@ -118,7 +124,10 @@ There are also some optional settings. They are listed below, with their default
    ``RESIZE_NOOP`` was added.
 
 .. versionadded:: 1.0.0
-   ``RESIZE_USE_S3``, ``RESIZE_CACHE_STORE``, ``RESIZE_REDIS_HOST``, ``RESIZE_REDIS_PORT``, ``RESIZE_REDIS_DB`` and ``RESIZE_REDIS_KEY`` were added.
+   ``RESIZE_CACHE_STORE``, ``RESIZE_REDIS_HOST``, ``RESIZE_REDIS_PORT``, ``RESIZE_REDIS_DB`` and ``RESIZE_REDIS_KEY`` were added.
 
 .. versionadded:: 1.0.1
    ``RESIZE_S3_REGION``was added.
+
+.. versionadded:: 1.0.2
+   ``RESIZE_STORAGE_BACKEND``was added.

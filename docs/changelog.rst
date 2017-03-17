@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0.2 (2017-03-17)
+------------------
+
+- **Breaking** Removed option `RESIZE_USE_S3` and replaced it with `RESIZE_STORAGE_BACKEND`, more explicit and simple.
+- **Improvement** Automatically load `RESIZE_S3_ACCESS_KEY`, `RESIZE_S3_SECRET_KEY` and `RESIZE_S3_REGION` settings using `botocore.session`, in case they are not explicitly specified.
+
 1.0.1 (2017-03-17)
 ------------------
 

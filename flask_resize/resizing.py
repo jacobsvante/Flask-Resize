@@ -443,13 +443,18 @@ class Resize(object):
         """
         app.resize = app.jinja_env.filters['resize'] = resize
         app.config.setdefault('RESIZE_NOOP', False)
+        app.config.setdefault('RESIZE_ROOT', None)
+
+        app.config.setdefault('RESIZE_STORAGE_BACKEND', 'file')
+        assert app.config['RESIZE_STORAGE_BACKEND'] in ('file', 's3')
+
         app.config.setdefault(
             'RESIZE_TARGET_DIRECTORY',
             constants.DEFAULT_TARGET_DIRECTORY
         )
         app.config.setdefault(
             'RESIZE_CACHE_STORE',
-            'redis' if redis is not None else None
+            'noop' if redis is None else 'redis'
         )
         app.config.setdefault('RESIZE_REDIS_HOST', 'localhost')
         app.config.setdefault('RESIZE_REDIS_PORT', 6379)
@@ -467,36 +472,41 @@ class Resize(object):
         app.config.setdefault('RESIZE_S3_SECRET_KEY', None)
         app.config.setdefault('RESIZE_S3_BUCKET', None)
         app.config.setdefault('RESIZE_S3_REGION', None)
-        app.config.setdefault(
-            'RESIZE_USE_S3',
-            all([
-                app.config['RESIZE_S3_ACCESS_KEY'],
-                app.config['RESIZE_S3_SECRET_KEY'],
-                app.config['RESIZE_S3_BUCKET'],
-            ])
-        )
 
         if app.config['RESIZE_NOOP']:
             return  # No RESIZE_URL or RESIZE_ROOT need to be specified.
 
-        if app.config['RESIZE_USE_S3']:
-            app.config['RESIZE_ROOT'] = None
+        if app.config['RESIZE_STORAGE_BACKEND'] == 's3':
+            if not app.config['RESIZE_S3_BUCKET']:
+                raise RuntimeError(
+                    'You must specify RESIZE_S3_BUCKET when using the '
+                    's3 backend'
+                )
+
             app.resize_image_store = storage.S3Storage(
                 access_key=app.config['RESIZE_S3_ACCESS_KEY'],
                 secret_key=app.config['RESIZE_S3_SECRET_KEY'],
                 bucket=app.config['RESIZE_S3_BUCKET'],
                 region_name=app.config['RESIZE_S3_REGION'],
             )
+
             app.config.setdefault(
                 'RESIZE_URL',
                 app.resize_image_store.base_url
             )
+
         else:
             if not isinstance(app.config.get('RESIZE_URL'), string_types):
-                raise RuntimeError('You must specify a valid RESIZE_URL.')
+                raise RuntimeError(
+                    'You must specify a valid RESIZE_URL '
+                    'when RESIZE_STORAGE_BACKEND is set to "file".'
+                )
 
             if not isinstance(app.config.get('RESIZE_ROOT'), string_types):
-                raise RuntimeError('You must specify a valid RESIZE_ROOT.')
+                raise RuntimeError(
+                    'You must specify a valid RESIZE_ROOT '
+                    'when RESIZE_STORAGE_BACKEND is set to "file".'
+                )
             if not op.isdir(app.config['RESIZE_ROOT']):
                 raise RuntimeError(
                     'Your RESIZE_ROOT does not exist or is a regular file.'

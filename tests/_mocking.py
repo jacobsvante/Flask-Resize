@@ -6,7 +6,7 @@ test_real_s3_keys = (
     'RESIZE_S3_BUCKET',
 )
 
-if all((k in os.environ) for k in test_real_s3_keys):
+if 'RESIZE_S3_BUCKET' in os.environ:
     def mock_s3(f):
         return f
 else:
