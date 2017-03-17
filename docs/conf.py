@@ -122,7 +122,7 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-# NOTE: Readthedocs.org requires that this is unset
+# NOTE: Readthedocs.io requires that this is unset
 # html_theme = 'alabaster'
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -302,8 +302,8 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.4', None),
     'flask': ('http://flask.pocoo.org/docs/0.10/', None),
-    'pillow': ('https://pillow.readthedocs.org', None),
-    'pilkit': ('https://pilkit.readthedocs.org/en/latest/', None),
+    'pillow': ('https://pillow.readthedocs.io/en/4.0.x/', None),
+    'pilkit': ('https://pilkit.readthedocs.io/en/latest/', None),
 }
 
 
