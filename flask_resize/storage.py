@@ -66,7 +66,7 @@ class FileStorage(Storage):
 
 class S3Storage(Storage):
 
-    def __init__(self, access_key, secret_key, bucket):
+    def __init__(self, access_key, secret_key, bucket, region_name=None):
         if boto3 is None:
             raise exc.Boto3ImportError(
                 "boto3 must be installed for Amazon S3 support. "
@@ -75,10 +75,12 @@ class S3Storage(Storage):
         self.access_key = access_key
         self.secret_key = secret_key
         self.bucket_name = bucket
+        self.region_name = region_name
         self.s3 = boto3.resource(
             's3',
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
+            region_name=region_name,
         )
         self.bucket = self.s3.Bucket(self.bucket_name)
 

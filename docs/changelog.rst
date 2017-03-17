@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.0.1 (2017-03-17)
+------------------
+
+- **Improvement** Added the option `RESIZE_S3_REGION`. Can be set if the S3 region has to be specified manually for some reason.
+
 1.0.0 (2017-03-17)
 ------------------
 

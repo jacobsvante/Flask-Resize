@@ -111,8 +111,14 @@ There are also some optional settings. They are listed below, with their default
     # Which key to use for redis if it is enabled with `RESIZE_CACHE_STORE`
     RESIZE_REDIS_KEY = 0
 
+    # Can be set if the S3 region has to be specified manually for some reason.
+    RESIZE_S3_REGION = None
+
 .. versionadded:: 0.4.0
    ``RESIZE_NOOP`` was added.
 
 .. versionadded:: 1.0.0
    ``RESIZE_USE_S3``, ``RESIZE_CACHE_STORE``, ``RESIZE_REDIS_HOST``, ``RESIZE_REDIS_PORT``, ``RESIZE_REDIS_DB`` and ``RESIZE_REDIS_KEY`` were added.
+
+.. versionadded:: 1.0.1
+   ``RESIZE_S3_REGION``was added.

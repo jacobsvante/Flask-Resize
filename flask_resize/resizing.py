@@ -466,6 +466,7 @@ class Resize(object):
         app.config.setdefault('RESIZE_S3_ACCESS_KEY', None)
         app.config.setdefault('RESIZE_S3_SECRET_KEY', None)
         app.config.setdefault('RESIZE_S3_BUCKET', None)
+        app.config.setdefault('RESIZE_S3_REGION', None)
         app.config.setdefault(
             'RESIZE_USE_S3',
             all([
@@ -484,6 +485,7 @@ class Resize(object):
                 access_key=app.config['RESIZE_S3_ACCESS_KEY'],
                 secret_key=app.config['RESIZE_S3_SECRET_KEY'],
                 bucket=app.config['RESIZE_S3_BUCKET'],
+                region_name=app.config['RESIZE_S3_REGION'],
             )
             app.config.setdefault(
                 'RESIZE_URL',
