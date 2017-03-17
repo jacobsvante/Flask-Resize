@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.0.3 (2017-03-17)
+------------------
+
+- **Improvement** Add image to cache when the path is found while checking for its existence, even though it wasn't in the local cache since before. This way a path can be cached even though the generation was done on another computer, or after the local cache has been cleared.
+
 1.0.2 (2017-03-17)
 ------------------
 

@@ -193,6 +193,10 @@ class ResizeTarget:
 
     def get_path(self):
         if self.image_store.exists(self.unique_key):
+            # As the generated image might've been created on another instance,
+            # we'll store the path in cache key here so we won't have to
+            # manually check the path again.
+            self.cache_store.add(self.unique_key)
             return self.unique_key
         else:
             raise exc.ImageNotFoundError(self.unique_key)
