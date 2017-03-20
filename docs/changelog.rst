@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.0.4 (2017-03-20)
+------------------
+
+- **Bugfix** Concurrent generation of the same image wasn't handled properly
+- **Enhancement** Add some basic logging statements
+
 1.0.3 (2017-03-17)
 ------------------
 

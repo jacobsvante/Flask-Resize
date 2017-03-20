@@ -25,13 +25,6 @@ with open(metadata_relpath) as fh:
     metadata = {}
     exec(fh.read(), globals(), metadata)
 
-test_requirements = [
-    'click>=6.7',
-    'coverage>=4.2',
-    'flake8>=3.3.0',
-    'pytest>=3.0.7',
-]
-
 setup(
     name=appname,
     version=metadata['__version__'],
@@ -57,7 +50,11 @@ setup(
             ['redis', 's3'] +
             ['cairosvg'] if sys.version_info >= (3, 4) else []
         ),
-        'test': test_requirements,
+        'test': [
+            'click>=6.7',
+            'coverage>=4.2',
+            'pytest>=3.0.7',
+        ],
         'test_s3': ['moto>=0.4.31'],
     },
     entry_points={

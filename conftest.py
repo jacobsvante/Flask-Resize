@@ -1,9 +1,16 @@
+import logging
+import os
 import subprocess
 
 import pytest
 from PIL import Image
 
-import flask_resize as fr
+import flask_resize
+
+
+logging.basicConfig(format='%(levelname)s:%(name)s:%(thread)d:%(message)s')
+log_level = os.environ.get('RESIZE_LOG_LEVEL', 'error')
+flask_resize.logger.setLevel(getattr(logging, log_level.upper()))
 
 
 @pytest.yield_fixture
@@ -19,7 +26,7 @@ def image1():
 
 @pytest.fixture
 def image1_data(image1):
-    return fr.resizing.image_data(image1, 'PNG')
+    return flask_resize.resizing.image_data(image1, 'PNG')
 
 
 @pytest.fixture
@@ -29,12 +36,12 @@ def image2():
 
 @pytest.fixture
 def image2_data(image2):
-    return fr.resizing.image_data(image2, 'PNG')
+    return flask_resize.resizing.image_data(image2, 'PNG')
 
 
 @pytest.fixture
 def filestorage(tmpdir):
-    return fr.storage.FileStorage(base_path=str(tmpdir))
+    return flask_resize.storage.FileStorage(base_path=str(tmpdir))
 
 
 @pytest.fixture
@@ -50,10 +57,10 @@ def default_filetarget_options(filestorage):
         upscale=True,
         progressive=True,
         use_placeholder=False,
-        cache_store=fr.cache.NoopCache(),
+        cache_store=flask_resize.cache.NoopCache(),
     )
 
 
 @pytest.fixture
 def filetarget(filestorage, default_filetarget_options):
-    return fr.resizing.ResizeTarget(**default_filetarget_options)
+    return flask_resize.resizing.ResizeTarget(**default_filetarget_options)

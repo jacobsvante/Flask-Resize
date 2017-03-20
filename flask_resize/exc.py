@@ -29,6 +29,10 @@ class CacheMiss(RuntimeError):
     """Raised when a cached image path could not be found"""
 
 
+class GenerateInProgress(RuntimeError):
+    """The image is currently being generated"""
+
+
 class CairoSVGImportError(ImportError):
     """Raised when an SVG input file is encountered but CairoSVG is not installed."""
 

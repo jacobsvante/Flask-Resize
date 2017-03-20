@@ -1,5 +1,6 @@
 import hashlib
 import io
+import logging
 import os.path as op
 
 import pilkit.processors
@@ -9,6 +10,8 @@ from flask import current_app
 
 from . import cache, constants, exc, storage, utils
 from ._compat import b, cairosvg, redis, string_types
+
+logger = logging.getLogger('flask_resize')
 
 
 def format_to_ext(format):
@@ -187,9 +190,12 @@ class ResizeTarget:
 
     def get_cached_path(self):
         if self.cache_store.exists(self.unique_key):
+            logger.debug('Fetched from cache: {}'.format(self.unique_key))
             return self.unique_key
         else:
-            raise exc.CacheMiss('`{}` is not cached.'.format(self.unique_key))
+            msg = '`{}` is not cached.'.format(self.unique_key)
+            logger.debug(msg)
+            raise exc.CacheMiss(msg)
 
     def get_path(self):
         if self.image_store.exists(self.unique_key):
@@ -197,6 +203,8 @@ class ResizeTarget:
             # we'll store the path in cache key here so we won't have to
             # manually check the path again.
             self.cache_store.add(self.unique_key)
+
+            logger.debug('Found non-cached image: {}'.format(self.unique_key))
             return self.unique_key
         else:
             raise exc.ImageNotFoundError(self.unique_key)
@@ -270,8 +278,15 @@ class ResizeTarget:
         return image_data(img, self.format, **options)
 
     def generate(self):
+        logger.info(
+            'Generating image: {}'.format(self.unique_key)
+        )
+
         if self.cache_store.exists(self.unique_key):
-            raise exc.GenerateInProcess()
+            logger.error(
+                'Generate in progress: {}'.format(self.unique_key)
+            )
+            raise exc.GenerateInProgress(self.unique_key)
 
         # Add to cache before starting the generation, to deal with other
         # threads/processes starting generation of the same file. A common
@@ -284,9 +299,26 @@ class ResizeTarget:
         try:
             data = self._generate_impl()
             self.image_store.save(self.unique_key, data)
-        except:
+        except Exception as e:
+            logger.info(
+                'Exception occurred - removing {} from cache and '
+                'image store. Exception was: {}'
+                .format(self.unique_key, e)
+            )
+
+            try:
+                self.image_store.delete(self.unique_key)
+            except Exception as e2:
+                logger.warning(
+                    'Another exception occurred while doing error cleanup '
+                    'for: {}. The exception was: {}'
+                    .format(self.unique_key, e2)
+                )
+                pass
+
             self.cache_store.remove(self.unique_key)
-            raise
+
+            raise e
         return data
 
     def generate_placeholder(self, message):
@@ -385,6 +417,11 @@ def resize(image_url, dimensions, format=None, quality=80, fill=False,
         except exc.ImageNotFoundError:
             target.generate()
             relative_url = target.get_path()
+        except exc.GenerateInProgress:
+            if current_app.config['RESIZE_RAISE_ON_GENERATE_IN_PROGRESS']:
+                raise
+            else:
+                relative_url = target.unique_key
 
     return op.join(current_app.config['RESIZE_URL'], relative_url)
 
@@ -448,6 +485,10 @@ class Resize(object):
         app.resize = app.jinja_env.filters['resize'] = resize
         app.config.setdefault('RESIZE_NOOP', False)
         app.config.setdefault('RESIZE_ROOT', None)
+        app.config.setdefault(
+            'RESIZE_RAISE_ON_GENERATE_IN_PROGRESS',
+            app.debug
+        )
 
         app.config.setdefault('RESIZE_STORAGE_BACKEND', 'file')
         assert app.config['RESIZE_STORAGE_BACKEND'] in ('file', 's3')
@@ -499,7 +540,7 @@ class Resize(object):
                 app.resize_image_store.base_url
             )
 
-        else:
+        elif app.config['RESIZE_STORAGE_BACKEND'] == 'file':
             if not isinstance(app.config.get('RESIZE_URL'), string_types):
                 raise RuntimeError(
                     'You must specify a valid RESIZE_URL '
@@ -521,6 +562,11 @@ class Resize(object):
             app.resize_image_store = storage.FileStorage(
                 base_path=app.config['RESIZE_ROOT'],
             )
+        else:
+            raise RuntimeError(
+                'Non-supported RESIZE_STORAGE_BACKEND value: "{}"'
+                .format(app.config['RESIZE_STORAGE_BACKEND'])
+            )
 
         if app.config['RESIZE_CACHE_STORE'] == 'redis':
             kw = dict(
@@ -530,8 +576,13 @@ class Resize(object):
                 key=app.config['RESIZE_REDIS_KEY'],
             )
             app.resize_cache_store = cache.RedisCache(**kw)
-        else:
+        elif app.config['RESIZE_CACHE_STORE'] == 'noop':
             app.resize_cache_store = cache.NoopCache()
+        else:
+            raise RuntimeError(
+                'Non-supported RESIZE_CACHE_STORE value: "{}"'
+                .format(app.config['RESIZE_CACHE_STORE'])
+            )
 
         if not app.config['RESIZE_URL'].endswith('/'):
             app.config['RESIZE_URL'] = app.config['RESIZE_URL'] + '/'

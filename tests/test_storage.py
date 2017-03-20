@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-import flask_resize as fr
+import flask_resize
 from flask_resize._compat import boto3
 
 from ._mocking import mock_s3
@@ -20,7 +20,7 @@ def test_file_storage(filestorage, tmpdir):
     data = filestorage.get(str(filepath2))
     assert data == b'content'
 
-    with pytest.raises(fr.exc.FileExistsError):
+    with pytest.raises(flask_resize.exc.FileExistsError):
         filestorage.save(str(filepath2), b'')
 
     filestorage.delete(str(filepath2))
@@ -39,7 +39,7 @@ def test_s3_storage():
     real_access_key = os.environ.get('RESIZE_S3_ACCESS_KEY')
     real_secret_key = os.environ.get('RESIZE_S3_SECRET_KEY')
     real_bucket_name = os.environ.get('RESIZE_S3_BUCKET')
-    s3_storage = fr.storage.S3Storage(
+    s3_storage = flask_resize.storage.S3Storage(
         real_bucket_name or 'test-bucket',
         access_key=real_access_key,
         secret_key=real_secret_key,

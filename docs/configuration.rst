@@ -99,11 +99,10 @@ There are also some optional settings. They are listed below, with their default
     # Which backend to store files in. Defaults to the file backend. Can be either `file` or `s3`.
     RESIZE_STORAGE_BACKEND = 'file'
 
-    # Use redis as a cache if it's installed (`pip install
-    # flask-resize[redis]`), otherwise use a no-op cache. Can be set
-    # to `None` manually to forcefully turn redis caching off, even
-    # if the client is installed.
-    RESIZE_CACHE_STORE = 'redis' if redis is not None else None
+    # Which cache store to use. Currently only redis is supported (`pip install
+    # flask-resize[redis]`), and will be configured automatically if the
+    # package is installed and `RESIZE_CACHE_STORE` hasn't been set explicitly. Otherwise a no-op cache is used.
+    RESIZE_CACHE_STORE = 'noop' if redis is None else 'redis'
 
     # Which host to use for redis if it is enabled with `RESIZE_CACHE_STORE`
     RESIZE_REDIS_HOST = 'localhost'
@@ -120,6 +119,10 @@ There are also some optional settings. They are listed below, with their default
     # Can be set if the S3 region has to be specified manually for some reason.
     RESIZE_S3_REGION = None
 
+    # If True then GenerateInProgress exceptions aren't swallowed. Default is
+    # to only raise these exceptions when Flask is configured in debug mode.
+    RESIZE_RAISE_ON_GENERATE_IN_PROGRESS = app.debug
+
 .. versionadded:: 0.4.0
    ``RESIZE_NOOP`` was added.
 
@@ -127,7 +130,10 @@ There are also some optional settings. They are listed below, with their default
    ``RESIZE_CACHE_STORE``, ``RESIZE_REDIS_HOST``, ``RESIZE_REDIS_PORT``, ``RESIZE_REDIS_DB`` and ``RESIZE_REDIS_KEY`` were added.
 
 .. versionadded:: 1.0.1
-   ``RESIZE_S3_REGION``was added.
+   ``RESIZE_S3_REGION`` was added.
 
 .. versionadded:: 1.0.2
-   ``RESIZE_STORAGE_BACKEND``was added.
+   ``RESIZE_STORAGE_BACKEND`` was added.
+
+.. versionadded:: 1.0.4
+   ``RESIZE_RAISE_ON_GENERATE_IN_PROGRESS`` was added.
