@@ -3,9 +3,11 @@
 Flask-Resize
 ------------
 
-Flask extension for resizing images in code and templates.
+Flask extension for automating the resizing of images in your code and
+templates. Can convert from JPEG|PNG|SVG to JPEG|PNG, resize to fit and crop.
+File-based and S3-based storage options are available.
 
-See https://github.com/jmagnusson/Flask-Resize for usage.
+See https://flask-resize.readthedocs.io/ for documentation.
 
 """
 from __future__ import print_function
@@ -38,9 +40,10 @@ setup(
         ],
     },
     install_requires=[
-        'Pillow',
-        'pilkit',
+        'argh',
         'Flask',
+        'pilkit',
+        'Pillow',
     ],
     extras_require={
         'svg': ['cairosvg'],
@@ -48,7 +51,7 @@ setup(
         's3': ['boto3'],
         'full': (
             ['redis', 's3'] +
-            ['cairosvg'] if sys.version_info >= (3, 4) else []
+            (['cairosvg'] if sys.version_info >= (3, 4) else [])
         ),
         'test': [
             'click>=6.7',
@@ -58,7 +61,9 @@ setup(
         'test_s3': ['moto>=0.4.31'],
     },
     entry_points={
-        'console_scripts': {},
+        'console_scripts': {
+            'flask-resize = flask_resize.bin:parser.dispatch',
+        },
     },
     author='Jacob Magnusson',
     author_email='m@jacobian.se',
@@ -78,5 +83,8 @@ setup(
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
     ],
 )

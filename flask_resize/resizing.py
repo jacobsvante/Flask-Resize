@@ -1,15 +1,16 @@
 import hashlib
 import io
 import logging
-import os.path as op
+import os
 
 import pilkit.processors
 import pilkit.utils
-from PIL import Image, ImageDraw, ImageFont, ImageColor
 from flask import current_app
+from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 from . import cache, constants, exc, storage, utils
-from ._compat import b, cairosvg, redis, string_types
+from .configuration import Config
+from ._compat import b, cairosvg
 
 logger = logging.getLogger('flask_resize')
 
@@ -41,8 +42,8 @@ def _get_package_path(relpath):
     Returns:
         str: Full path for the file requested
     """
-    pkgdir = op.dirname(__file__)
-    return op.join(pkgdir, 'fonts', relpath)
+    pkgdir = os.path.dirname(__file__)
+    return os.path.join(pkgdir, 'fonts', relpath)
 
 
 def make_opaque(img, bgcolor):
@@ -120,7 +121,7 @@ class ResizeTarget:
         self,
         image_store,
         source_image_relative_url,
-        dimensions,
+        dimensions=None,
         format=None,
         quality=80,
         fill=False,
@@ -134,7 +135,10 @@ class ResizeTarget:
     ):
         self.source_image_relative_url = source_image_relative_url
         self.use_placeholder = use_placeholder
-        self.width, self.height = utils.parse_dimensions(dimensions)
+        self.width, self.height = (
+            utils.parse_dimensions(dimensions) if dimensions is not None
+            else (None, None)
+        )
         self.format = utils.parse_format(source_image_relative_url, format)
         self.quality = quality
         self.fill = fill
@@ -161,6 +165,10 @@ class ResizeTarget:
                 'Fill requires both width and height to be set.'
             )
 
+    @property
+    def file_extension(self):
+        return format_to_ext(self.format)
+
     def _get_generate_unique_key_args(self):
         return [
             self.source_image_relative_url,
@@ -174,17 +182,13 @@ class ResizeTarget:
             self.bgcolor or '',
         ]
 
-    @property
-    def file_extension(self):
-        return format_to_ext(self.format)
-
     def _generate_unique_key(self):
         cache_key_args = self._get_generate_unique_key_args()
         hash = hashlib.new(self.name_hashing_method)
         hash.update(b(''.join(str(a) for a in cache_key_args)))
         name = hash.hexdigest()
         return '.'.join([
-            op.join(self.target_directory, name),
+            '/'.join([self.target_directory, name]),
             self.file_extension
         ])
 
@@ -218,7 +222,9 @@ class ResizeTarget:
             # Missing path means only a placeholder could be generated
             return constants.PNG
         else:
-            return self.source_image_relative_url.rpartition('.')[2].upper()
+            fmt = os.path.splitext(self.source_image_relative_url)[1]
+            assert fmt.startswith('.')
+            return fmt[1:].upper()
 
     def _generate_impl(self):
         try:
@@ -241,23 +247,24 @@ class ResizeTarget:
             fp = io.BytesIO(source_data)
             img = Image.open(fp)
 
-        processor_kwargs = dict(
-            width=self.width,
-            height=self.height,
-            upscale=self.upscale
-        )
+        if self.width or self.height:
+            resize_to_fit_kw = dict(
+                width=self.width,
+                height=self.height,
+                upscale=self.upscale
+            )
+            if self.fill:
+                if self.bgcolor:
+                    mat_color = ImageColor.getrgb(self.bgcolor)
+                elif self.format == constants.JPEG:
+                    mat_color = (255, 255, 255, 255)  # White
+                else:
+                    mat_color = (0, 0, 0, 0)  # Transparent
+                resize_to_fit_kw['mat_color'] = mat_color
 
-        if self.fill:
-            if self.bgcolor:
-                mat_color = ImageColor.getrgb(self.bgcolor)
-            elif self.format == constants.JPEG:
-                mat_color = (255, 255, 255, 255)  # White
-            else:
-                mat_color = (0, 0, 0, 0)  # Transparent
-            processor_kwargs['mat_color'] = mat_color
+            processor = pilkit.processors.ResizeToFit(**resize_to_fit_kw)
+            img = processor.process(img)
 
-        processor = pilkit.processors.ResizeToFit(**processor_kwargs)
-        img = processor.process(img)
         options = {
             'icc_profile': img.info.get('icc_profile'),
         }
@@ -278,158 +285,202 @@ class ResizeTarget:
         return image_data(img, self.format, **options)
 
     def generate(self):
-        logger.info(
-            'Generating image: {}'.format(self.unique_key)
-        )
+        with self.cache_store.transaction(
+            self.unique_key
+        ) as transaction_successful:
 
-        if self.cache_store.exists(self.unique_key):
-            logger.error(
-                'Generate in progress: {}'.format(self.unique_key)
-            )
-            raise exc.GenerateInProgress(self.unique_key)
-
-        # Add to cache before starting the generation, to deal with other
-        # threads/processes starting generation of the same file. A common
-        # example when this might happen is when multiple users hit the
-        # same page at the same time - both server workers will initate
-        # generation of the same file at the same time. When the redis
-        # cache is enabled this will be extremely unlikely.
-        self.cache_store.add(self.unique_key)
-
-        try:
-            data = self._generate_impl()
-            self.image_store.save(self.unique_key, data)
-        except Exception as e:
-            logger.info(
-                'Exception occurred - removing {} from cache and '
-                'image store. Exception was: {}'
-                .format(self.unique_key, e)
-            )
+            if transaction_successful:
+                logger.info('Generating image: {}'.format(self.unique_key))
+            else:
+                logger.error(
+                    'GenerateInProgress error for: {}'.format(self.unique_key)
+                )
+                raise exc.GenerateInProgress(self.unique_key)
 
             try:
-                self.image_store.delete(self.unique_key)
-            except Exception as e2:
-                logger.warning(
-                    'Another exception occurred while doing error cleanup '
-                    'for: {}. The exception was: {}'
-                    .format(self.unique_key, e2)
+                data = self._generate_impl()
+                self.image_store.save(self.unique_key, data)
+            except Exception as e:
+                logger.info(
+                    'Exception occurred - removing {} from cache and '
+                    'image store. Exception was: {}'
+                    .format(self.unique_key, e)
                 )
-                pass
 
-            self.cache_store.remove(self.unique_key)
+                try:
+                    self.image_store.delete(self.unique_key)
+                except Exception as e2:
+                    logger.warning(
+                        'Another exception occurred while doing error cleanup '
+                        'for: {}. The exception was: {}'
+                        .format(self.unique_key, e2)
+                    )
+                    pass
 
-            raise e
-        return data
+                self.cache_store.remove(self.unique_key)
+
+                raise e
+            else:
+                self.cache_store.add(self.unique_key)
+            return data
 
     def generate_placeholder(self, message):
         img = create_placeholder_image(self.width, self.height, message)
         return image_data(img, 'PNG')
 
 
-def resize(image_url, dimensions, format=None, quality=80, fill=False,
-           bgcolor=None, upscale=True, progressive=True, placeholder=False):
-    """Jinja filter for resizing, converting and caching images.
+class Resizer:
+    """Factory for creating the resize function"""
 
-    Args:
-        image_url (str):
-            URL for the image to resize. Can be a relative URL, or include the config's `RESIZE_URL` value.
-        dimensions (str, Sequence[:class:`int`, :class:`int`]):
-            Width and height to use when generating the new image.
-            Uses the format of :func:`parse_dimensions`.
-        format (Optional[:class:`str`]):
-            Format to convert into. Defaults to using the same format as the
-            original image. An exception to this default is when the source
-            image is of type SVG/SVGZ, then PNG is used as default.
-        quality (int):
-            Quality of the output image, if the format is JPEG. Defaults to 80.
-        fill (bool):
-            Fill the entire width and height that was specified if True,
-            otherwise keep the original image dimensions. Defaults to False.
-        bgcolor (Optional[:class:`str`]):
-            If specified this color will be used as background.
-        upscale (bool):
-            Whether or not to allow the image to become bigger than the
-            original if the request width and/or height is bigger than its
-            dimensions. Defaults to True.
-        progressive (bool):
-            Whether to use progressive encoding or not when JPEG is the
-            output format. Defaults to True.
-        placeholder (bool):
-            Whether to show a placeholder if the specified ``image_url``
-            couldn't be found.
+    def __init__(
+        self,
+        storage_backend,
+        cache_store,
+        base_url,
+        name_hashing_method=constants.DEFAULT_NAME_HASHING_METHOD,
+        target_directory=constants.DEFAULT_TARGET_DIRECTORY,
+        raise_on_generate_in_progress=False,
+        noop=False
+    ):
+        self.storage_backend = storage_backend
+        self.cache_store = cache_store
+        self.base_url = base_url
+        self.name_hashing_method = name_hashing_method
+        self.target_directory = target_directory
+        self.raise_on_generate_in_progress = raise_on_generate_in_progress
+        self.noop = noop
+        self._fix_base_url()
 
-    Raises:
-        :class:`exc.EmptyImagePathError`:
-            If an empty image path was received.
-        :class:`exc.ImageNotFoundError`:
-            If the image could not be found.
-        :class:`exc.MissingDimensionsError`:
-            If ``fill`` argument was True, but width or height was not passed.
+    def _fix_base_url(self):
+        if not self.base_url.endswith('/'):
+            self.base_url += '/'
 
-    Returns:
-        str:
-            URL to the generated and cached image.
-
-    Examples:
-        Generate an image from the supplied image URL that will fit
-        within an area of 600px width and 400px height::
-
-            {{ original_image_url|resize('600x400') }}
-
-        Resize and crop so that the image will fill the entire area::
-
-            {{ original_image_url|resize('300x300', fill=1) }}
-
-        Convert to JPG::
-
-            {{ original_image_url|resize('300x300', format='jpg') }}
-    """
-
-    if current_app.config['RESIZE_NOOP']:
-        return image_url
-
-    if image_url and image_url.startswith(current_app.config['RESIZE_URL']):
-        image_url = image_url[len(current_app.config['RESIZE_URL']):]
-
-    target = ResizeTarget(
-        current_app.resize_image_store,
+    def __call__(
+        self,
         image_url,
-        dimensions=dimensions,
-        format=format,
-        quality=quality,
-        fill=fill,
-        bgcolor=bgcolor,
-        upscale=upscale,
-        progressive=progressive,
-        use_placeholder=placeholder,
-        cache_store=current_app.resize_cache_store,
-        name_hashing_method=current_app.config['RESIZE_HASH_METHOD'],
-        target_directory=(
-            current_app.config['RESIZE_TARGET_DIRECTORY']
-        ),
-    )
+        dimensions=None,
+        format=None,
+        quality=80,
+        fill=False,
+        bgcolor=None,
+        upscale=True,
+        progressive=True,
+        placeholder=False
+    ):
+        """Method for resizing, converting and caching images
 
-    try:
-        relative_url = target.get_cached_path()
-    except exc.CacheMiss:
+        Args:
+            image_url (str):
+                URL for the image to resize. A URL relative to `base_url`
+            dimensions (str, Sequence[:class:`int`, :class:`int`]):
+                Width and height to use when generating the new image.
+                Uses the format of :func:`parse_dimensions`. No resizing
+                is done if None is passed in.
+            format (Optional[:class:`str`]):
+                Format to convert into. Defaults to using the same format as the
+                original image. An exception to this default is when the source
+                image is of type SVG/SVGZ, then PNG is used as default.
+            quality (int):
+                Quality of the output image, if the format is JPEG. Defaults to 80.
+            fill (bool):
+                Fill the entire width and height that was specified if True,
+                otherwise keep the original image dimensions. Defaults to False.
+            bgcolor (Optional[:class:`str`]):
+                If specified this color will be used as background.
+            upscale (bool):
+                Whether or not to allow the image to become bigger than the
+                original if the request width and/or height is bigger than its
+                dimensions. Defaults to True.
+            progressive (bool):
+                Whether to use progressive encoding or not when JPEG is the
+                output format. Defaults to True.
+            placeholder (bool):
+                Whether to show a placeholder if the specified ``image_url``
+                couldn't be found.
+
+        Raises:
+            :class:`exc.EmptyImagePathError`:
+                If an empty image path was received.
+            :class:`exc.ImageNotFoundError`:
+                If the image could not be found.
+            :class:`exc.MissingDimensionsError`:
+                If ``fill`` argument was True, but width or height was not passed.
+
+        Returns:
+            str:
+                URL to the generated and cached image.
+
+        Usage:
+            Generate an image from the supplied image URL that will fit
+            within an area of 600px width and 400px height::
+
+                resize('somedir/kittens.png', '600x400')
+
+            Resize and crop so that the image will fill the entire area::
+
+                resize('somedir/kittens.png', '300x300', fill=1)
+
+            Convert to JPG::
+
+                resize('somedir/kittens.png', '300x300', format='jpg')
+        """
+
+        if self.noop:
+            return image_url
+
+        if image_url and image_url.startswith(self.base_url):
+            image_url = image_url[len(self.base_url):]
+
+        target = ResizeTarget(
+            self.storage_backend,
+            image_url,
+            dimensions=dimensions,
+            format=format,
+            quality=quality,
+            fill=fill,
+            bgcolor=bgcolor,
+            upscale=upscale,
+            progressive=progressive,
+            use_placeholder=placeholder,
+            cache_store=self.cache_store,
+            name_hashing_method=self.name_hashing_method,
+            target_directory=self.target_directory,
+        )
+
         try:
-            relative_url = target.get_path()
-        except exc.ImageNotFoundError:
-            target.generate()
-            relative_url = target.get_path()
-        except exc.GenerateInProgress:
-            if current_app.config['RESIZE_RAISE_ON_GENERATE_IN_PROGRESS']:
-                raise
-            else:
-                relative_url = target.unique_key
+            relative_url = target.get_cached_path()
+        except exc.CacheMiss:
+            try:
+                relative_url = target.get_path()
+            except exc.ImageNotFoundError:
+                target.generate()
+                relative_url = target.get_path()
+            except exc.GenerateInProgress:
+                if self.raise_on_generate_in_progress:
+                    raise
+                else:
+                    relative_url = target.unique_key
 
-    return op.join(current_app.config['RESIZE_URL'], relative_url)
+        return os.path.join(self.base_url, relative_url)
+
+
+def make_resizer(config):
+    """Resizer instance factory"""
+    return Resizer(
+        storage_backend=storage.make(config),
+        cache_store=cache.make(config),
+        base_url=config.url,
+        name_hashing_method=config.hash_method,
+        target_directory=config.target_directory,
+        raise_on_generate_in_progress=config.raise_on_generate_in_progress,
+        noop=config.noop,
+    )
 
 
 class Resize(object):
     """
-    Used for initializing the configuration needed for the ``resize``
-    function (and jinja filter) to work in a flask app.
+    Used for initializing the configuration needed for the ``Resizer``
+    instance, and for the jinja filter to work in the flask app.
 
     Examples:
         Set-up using the direct initialization::
@@ -471,6 +522,9 @@ class Resize(object):
         if app is not None:
             self.init_app(app)
 
+    def __call__(self, *args, **kwargs):
+        return current_app.resize(*args, **kwargs)
+
     def init_app(self, app):
         """Initialize Flask-Resize
 
@@ -482,107 +536,12 @@ class Resize(object):
             RuntimeError:
                 A setting wasn't specified, or was invalid.
         """
-        app.resize = app.jinja_env.filters['resize'] = resize
-        app.config.setdefault('RESIZE_NOOP', False)
-        app.config.setdefault('RESIZE_ROOT', None)
-        app.config.setdefault(
-            'RESIZE_RAISE_ON_GENERATE_IN_PROGRESS',
-            app.debug
+
+        config = Config.from_dict(
+            app.config,
+            default_overrides={
+                'RESIZE_RAISE_ON_GENERATE_IN_PROGRESS': app.debug,
+            }
         )
 
-        app.config.setdefault('RESIZE_STORAGE_BACKEND', 'file')
-        assert app.config['RESIZE_STORAGE_BACKEND'] in ('file', 's3')
-
-        app.config.setdefault(
-            'RESIZE_TARGET_DIRECTORY',
-            constants.DEFAULT_TARGET_DIRECTORY
-        )
-        app.config.setdefault(
-            'RESIZE_CACHE_STORE',
-            'noop' if redis is None else 'redis'
-        )
-        app.config.setdefault('RESIZE_REDIS_HOST', 'localhost')
-        app.config.setdefault('RESIZE_REDIS_PORT', 6379)
-        app.config.setdefault('RESIZE_REDIS_DB', 0)
-
-        # Note that only one key is set - a SET type, which is updated
-        # with all the unique names of already generated files.
-        app.config.setdefault('RESIZE_REDIS_KEY', constants.DEFAULT_REDIS_KEY)
-
-        app.config.setdefault(
-            'RESIZE_HASH_METHOD',
-            constants.DEFAULT_NAME_HASHING_METHOD
-        )
-        app.config.setdefault('RESIZE_S3_ACCESS_KEY', None)
-        app.config.setdefault('RESIZE_S3_SECRET_KEY', None)
-        app.config.setdefault('RESIZE_S3_BUCKET', None)
-        app.config.setdefault('RESIZE_S3_REGION', None)
-
-        if app.config['RESIZE_NOOP']:
-            return  # No RESIZE_URL or RESIZE_ROOT need to be specified.
-
-        if app.config['RESIZE_STORAGE_BACKEND'] == 's3':
-            if not app.config['RESIZE_S3_BUCKET']:
-                raise RuntimeError(
-                    'You must specify RESIZE_S3_BUCKET when using the '
-                    's3 backend'
-                )
-
-            app.resize_image_store = storage.S3Storage(
-                access_key=app.config['RESIZE_S3_ACCESS_KEY'],
-                secret_key=app.config['RESIZE_S3_SECRET_KEY'],
-                bucket=app.config['RESIZE_S3_BUCKET'],
-                region_name=app.config['RESIZE_S3_REGION'],
-            )
-
-            app.config.setdefault(
-                'RESIZE_URL',
-                app.resize_image_store.base_url
-            )
-
-        elif app.config['RESIZE_STORAGE_BACKEND'] == 'file':
-            if not isinstance(app.config.get('RESIZE_URL'), string_types):
-                raise RuntimeError(
-                    'You must specify a valid RESIZE_URL '
-                    'when RESIZE_STORAGE_BACKEND is set to "file".'
-                )
-
-            if not isinstance(app.config.get('RESIZE_ROOT'), string_types):
-                raise RuntimeError(
-                    'You must specify a valid RESIZE_ROOT '
-                    'when RESIZE_STORAGE_BACKEND is set to "file".'
-                )
-            if not op.isdir(app.config['RESIZE_ROOT']):
-                raise RuntimeError(
-                    'Your RESIZE_ROOT does not exist or is a regular file.'
-                )
-            if not app.config['RESIZE_ROOT'].endswith('/'):
-                app.config['RESIZE_ROOT'] = app.config['RESIZE_ROOT'] + '/'
-
-            app.resize_image_store = storage.FileStorage(
-                base_path=app.config['RESIZE_ROOT'],
-            )
-        else:
-            raise RuntimeError(
-                'Non-supported RESIZE_STORAGE_BACKEND value: "{}"'
-                .format(app.config['RESIZE_STORAGE_BACKEND'])
-            )
-
-        if app.config['RESIZE_CACHE_STORE'] == 'redis':
-            kw = dict(
-                host=app.config['RESIZE_REDIS_HOST'],
-                port=app.config['RESIZE_REDIS_PORT'],
-                db=app.config['RESIZE_REDIS_DB'],
-                key=app.config['RESIZE_REDIS_KEY'],
-            )
-            app.resize_cache_store = cache.RedisCache(**kw)
-        elif app.config['RESIZE_CACHE_STORE'] == 'noop':
-            app.resize_cache_store = cache.NoopCache()
-        else:
-            raise RuntimeError(
-                'Non-supported RESIZE_CACHE_STORE value: "{}"'
-                .format(app.config['RESIZE_CACHE_STORE'])
-            )
-
-        if not app.config['RESIZE_URL'].endswith('/'):
-            app.config['RESIZE_URL'] = app.config['RESIZE_URL'] + '/'
+        app.resize = app.jinja_env.filters['resize'] = make_resizer(config)
