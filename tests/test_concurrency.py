@@ -1,27 +1,25 @@
-import pytest
-
 from multiprocessing.dummy import Pool
 
+import pytest
+
 import flask_resize
-from flask_resize import _compat
+
+from .decorators import requires_redis
 
 
-@pytest.mark.skipif(
-    _compat.redis is None,
-    reason="Redis not installed"
-)
-def test_generate_in_progress(default_filetarget_options, image1_data):
-    cache_store = flask_resize.cache.RedisCache(
-        key='flask-resize-generate-in-progress-test'
-    )
-    cache_store.clear()
-    options = default_filetarget_options.copy()
-    options.update(cache_store=cache_store)
+@requires_redis
+def test_generate_in_progress(
+    redis_cache,
+    resizetarget_opts,
+    image1_data,
+    image1_name
+):
+    resizetarget_opts.update(cache_store=redis_cache)
 
-    resize_target = flask_resize.resizing.ResizeTarget(**options)
+    resize_target = flask_resize.resizing.ResizeTarget(**resizetarget_opts)
 
     # Save original file
-    resize_target.image_store.save('image.png', image1_data)
+    resize_target.image_store.save(image1_name, image1_data)
 
     def run(x):
         resize_target.generate()

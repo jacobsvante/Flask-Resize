@@ -4,9 +4,11 @@ import re
 import flask
 import pytest
 from PIL import Image
-from flask_resize import _compat, cache, exc, resizing
+
+from flask_resize import cache, exc, resizing
 
 from .base import create_resizeapp
+from .decorators import requires_cairosvg, requires_no_cairosvg
 
 
 def test_resizetarget_init(filestorage):
@@ -41,33 +43,36 @@ def test_resizetarget_init(filestorage):
     )
 
 
-def test_resizetarget_generate(filetarget, image1_data):
-    assert filetarget.name_hashing_method == 'sha1'
-    expected_unique_key = (
-        'resized-images/d346d9b67bf93454629a5125f273143818bbd6d2.jpg'
-    )
+def test_resizetarget_generate(
+    resizetarget_opts,
+    image1_data,
+    image1_name,
+    image1_key
+):
+    resize_target = resizing.ResizeTarget(**resizetarget_opts)
+    assert resize_target.name_hashing_method == 'sha1'
 
     with pytest.raises(exc.CacheMiss):
-        filetarget.get_cached_path()
+        resize_target.get_cached_path()
 
     with pytest.raises(exc.ImageNotFoundError):
-        assert filetarget.get_path()
+        assert resize_target.get_path()
 
     # Save original file
-    filetarget.image_store.save('image.png', image1_data)
+    resize_target.image_store.save(image1_name, image1_data)
 
     # Generate thumb
-    filetarget.generate()
+    resize_target.generate()
 
-    assert filetarget.get_path() == expected_unique_key
+    assert resize_target.get_path() == image1_key
 
 
-# @pytest.mark.usefixtures('inspect_filetarget_directory')
-def test_resizetarget_generate_placeholder(filetarget, image1_data):
-    filetarget.use_placeholder = True
-    filetarget.generate()
+def test_resizetarget_generate_placeholder(resizetarget_opts, image1_data):
+    resize_target = resizing.ResizeTarget(**resizetarget_opts)
+    resize_target.use_placeholder = True
+    resize_target.generate()
 
-    assert re.match(r'^resized-images/.+\.jpg$', filetarget.get_path())
+    assert re.match(r'^resized-images/.+\.jpg$', resize_target.get_path())
 
 
 def test_resize_filter(tmpdir, image1_data, image2_data):
@@ -95,9 +100,6 @@ def test_resize_filter(tmpdir, image1_data, image2_data):
     )
     template = '<img src="{{ fn|resize("100x") }}">'
 
-    # expected_path = fr._construct_relative_cache_path(fn0, 'png', 100, 'auto', 'no-fill', 'upscale')
-    # expected_url = op.join(resize_url, expected_path)
-
     @app.route('/')
     def start():
         return flask.render_template_string(template, fn='file1.png')
@@ -111,26 +113,25 @@ def test_resize_filter(tmpdir, image1_data, image2_data):
         assert file2_expected_url in rendered
 
 
-def test_fill_dimensions(tmpdir, image1_data, default_filetarget_options):
+def test_fill_dimensions(tmpdir, image1_data, resizetarget_opts):
     file1 = tmpdir.join('file1.png')
     file1.write_binary(image1_data)
 
-    options = default_filetarget_options.copy()
-    options.update(
+    resizetarget_opts.update(
         format='png',
         source_image_relative_url='file1.png',
         dimensions='300x400',
         fill=True,
     )
-    resize_target = resizing.ResizeTarget(**options)
+    resize_target = resizing.ResizeTarget(**resizetarget_opts)
     img_data = resize_target.generate()
     generated_img = Image.open(io.BytesIO(img_data))
     assert generated_img.width == 300
     assert generated_img.height == 400
     assert generated_img.getpixel((0, 0))[3] == 0  # Transparent
 
-    options.update(dimensions='700x600')
-    resize_target = resizing.ResizeTarget(**options)
+    resizetarget_opts.update(dimensions='700x600')
+    resize_target = resizing.ResizeTarget(**resizetarget_opts)
     img_data = resize_target.generate()
     generated_img = Image.open(io.BytesIO(img_data))
     assert generated_img.width == 700
@@ -145,21 +146,17 @@ SVG_DATA = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 </svg>"""
 
 
-@pytest.mark.skipif(
-    _compat.cairosvg is None,
-    reason="CairoSVG 2.0 only supported in 3.4+"
-)
-def test_svg_resize(tmpdir, default_filetarget_options):
+@requires_cairosvg
+def test_svg_resize(tmpdir, resizetarget_opts):
     svg_path = tmpdir.join('test.svg')
     svg_path.write(SVG_DATA)
 
-    options = default_filetarget_options.copy()
-    options.update(
+    resizetarget_opts.update(
         format='png',
         source_image_relative_url='test.svg',
         dimensions='50x50',
     )
-    resize_target = resizing.ResizeTarget(**options)
+    resize_target = resizing.ResizeTarget(**resizetarget_opts)
     img_data = resize_target.generate()
     img = Image.open(io.BytesIO(img_data))
 
@@ -171,17 +168,13 @@ def test_svg_resize(tmpdir, default_filetarget_options):
     assert img.getpixel((49, 49)) == expected
 
 
-@pytest.mark.skipif(
-    _compat.cairosvg is not None,
-    reason="Should only test CairoSVG import error when it isn't installed"
-)
-def test_svg_resize_cairosvgimporterror(tmpdir, default_filetarget_options):
+@requires_no_cairosvg
+def test_svg_resize_cairosvgimporterror(tmpdir, resizetarget_opts):
     svg_path = tmpdir.join('test.svg')
     svg_path.write('content')
 
-    options = default_filetarget_options.copy()
-    options.update(source_image_relative_url='test.svg')
-    resize_target = resizing.ResizeTarget(**options)
+    resizetarget_opts.update(source_image_relative_url='test.svg')
+    resize_target = resizing.ResizeTarget(**resizetarget_opts)
 
     with pytest.raises(exc.CairoSVGImportError):
         resize_target.generate()

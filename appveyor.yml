@@ -1,0 +1,49 @@
+# Made with help from https://packaging.python.org/appveyor/
+
+environment:
+  TOX_TESTENV_PASSENV: DISTUTILS_USE_SDK MSSdk INCLUDE LIB
+
+  matrix:
+    - PYTHON: "C:\\Python27"
+      TOXENV: py-release
+    - PYTHON: "C:\\Python27"
+      TOXENV: py-redis
+    - PYTHON: "C:\\Python27"
+      TOXENV: py-s3
+    - PYTHON: "C:\\Python33"
+      TOXENV: py-release
+    - PYTHON: "C:\\Python33"
+      TOXENV: py-redis
+    - PYTHON: "C:\\Python33"
+      TOXENV: py-s3
+    - PYTHON: "C:\\Python34"
+      TOXENV: py-release
+    - PYTHON: "C:\\Python34"
+      TOXENV: py-redis
+    - PYTHON: "C:\\Python34"
+      TOXENV: py-s3
+    - PYTHON: "C:\\Python35"
+      TOXENV: py-release
+    - PYTHON: "C:\\Python35"
+      TOXENV: py-redis
+    - PYTHON: "C:\\Python35"
+      TOXENV: py-s3
+    - PYTHON: "C:\\Python36"
+      TOXENV: py-release
+    - PYTHON: "C:\\Python36"
+      TOXENV: py-redis
+    - PYTHON: "C:\\Python36"
+      TOXENV: py-s3
+
+install:
+  # Install Redis
+  - nuget install redis-64 -excludeversion
+  - redis-64\tools\redis-server.exe --service-install
+  - redis-64\tools\redis-server.exe --service-start
+  # Install tox for testing
+  - "%PYTHON%\\Scripts\\pip install tox"
+
+build: off
+
+test_script:
+  - "%PYTHON%\\Scripts\\tox"

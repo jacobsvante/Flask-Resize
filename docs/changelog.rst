@@ -1,11 +1,18 @@
 Changelog
 =========
 
-1.0.4 (2017-03-20)
+2.0.0 (2017-03-22)
 ------------------
 
+- **Feature** Added commands for generating images, listing/clearing cache and generated images (see :ref:`cli`)
+- **Feature** Ability to run resizing without a Flask app being involved (see :ref:`standalone-usage`)
+- **Enhancement** Windows is now supported, at least on paper. The test suite runs on a Windows host after each pushed commit, using the excellent CI service AppVeyor. The project still needs some real world usage though. Please report any issues you might find to the Github issues page. (see :ref:`compatibility`)
+- **Enhancement** `dimensions` is now an optional argument. Useful when just converting to a different format for example. (see :ref:`resize-arguments-dimensions`)
+- **Enhancement** Added some basic logging statements for debugging purposes
+- **Enhancement** Pypy and Python 3.6 are now officially supported
 - **Bugfix** Concurrent generation of the same image wasn't handled properly
-- **Enhancement** Add some basic logging statements
+- **Bugfix** There was a logic error when installing `flask-resize[full]`. `redis` and `s3` weren't installed below python3.4.
+- **Breaking** `flask_resize.resize` is no longer available. It's instead accessible when creating the Flask app extension. I.e: `resize = flask_resize.Resize(app)` or `resize = flask_resize.Resize(); resize.init_app(app)`
 
 1.0.3 (2017-03-17)
 ------------------

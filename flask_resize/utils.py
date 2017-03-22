@@ -1,4 +1,5 @@
 import errno
+import itertools
 import os
 
 from . import constants, exc
@@ -106,7 +107,7 @@ def parse_format(image_path, format=None):
             Format of supplied image
     """
     if not format:
-        _, _, format = image_path.rpartition('.')
+        format = os.path.splitext(image_path)[1][1:]
     format = format.upper()
     if format in ('JPEG', 'JPG'):
         format = constants.JPEG
@@ -118,3 +119,9 @@ def parse_format(image_path, format=None):
             "file formats at the moment."
         )
     return format
+
+
+def chunked(iterable, size):
+    """Split iterable `iter` into one or more `size` sized tuples"""
+    it = iter(iterable)
+    return iter(lambda: tuple(itertools.islice(it, size)), ())

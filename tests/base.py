@@ -1,4 +1,5 @@
 import flask
+
 from flask_resize import Resize
 
 
