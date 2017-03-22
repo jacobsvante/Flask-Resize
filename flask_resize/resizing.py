@@ -482,43 +482,13 @@ class Resize(object):
     Used for initializing the configuration needed for the ``Resizer``
     instance, and for the jinja filter to work in the flask app.
 
-    Examples:
-        Set-up using the direct initialization::
-
-            import flask
-            import flask_resize
-
-            app = flask.Flask(__name__)
-            app.config['RESIZE_URL'] = 'https://mysite.com/'
-            app.config['RESIZE_ROOT'] = '/home/user/myapp/images'
-
-            flask_resize.Resize(app)
-
-        Set-up using the app factory pattern::
-
-            import flask
-            import flask_resize
-
-            resize = flask_resize.Resize()
-
-            def create_app(**config_values):
-                app = flask.Flask()
-                app.config.update(**config_values)
-                resize.init_app(app)
-                return app
-
-            # And later on...
-            app = create_app(RESIZE_URL='https://mysite.com/',
-                             RESIZE_ROOT='/home/user/myapp/images')
+    Args:
+        app (Any[flask.Flask, None]):
+            A Flask app can be passed in immediately if not using the app
+            factory pattern.
     """
 
     def __init__(self, app=None):
-        """
-        Args:
-            app (Optional[:class:`flask.Flask`]):
-                Flask app to configure thisinstance on. Only use this if
-                you're not using an factory function to initialize the app.
-        """
         if app is not None:
             self.init_app(app)
 
