@@ -50,7 +50,7 @@ setup(
         'redis': ['redis'],
         's3': ['boto3'],
         'full': (
-            ['redis', 's3'] +
+            ['redis', 'boto3'] +
             (['cairosvg'] if sys.version_info >= (3, 4) else [])
         ),
         'test': [

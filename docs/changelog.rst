@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.0.1 (2017-03-23)
+------------------
+
+- **Bugfix** `s3` was erroneously added as a dependency instead of `boto3` in the recommended installation option `flask-resize[full]`
+
+
 2.0.0 (2017-03-22)
 ------------------
 
