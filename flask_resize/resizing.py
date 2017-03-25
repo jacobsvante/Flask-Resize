@@ -453,13 +453,15 @@ class Resizer:
             try:
                 relative_url = target.get_path()
             except exc.ImageNotFoundError:
-                target.generate()
-                relative_url = target.get_path()
-            except exc.GenerateInProgress:
-                if self.raise_on_generate_in_progress:
-                    raise
+                try:
+                    target.generate()
+                except exc.GenerateInProgress:
+                    if self.raise_on_generate_in_progress:
+                        raise
+                    else:
+                        relative_url = target.unique_key
                 else:
-                    relative_url = target.unique_key
+                    relative_url = target.get_path()
 
         return os.path.join(self.base_url, relative_url)
 

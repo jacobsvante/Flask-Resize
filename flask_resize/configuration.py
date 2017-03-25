@@ -24,6 +24,8 @@ class Config:
 
     def __init__(self, **config):
         for key, val in config.items():
+            if key.startswith('_') or key not in dir(self):
+                raise ValueError('Not a valid config val: {}'.format(key))
             setattr(self, key, val)
 
     @classmethod

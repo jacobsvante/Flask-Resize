@@ -1,6 +1,11 @@
 Changelog
 =========
 
+2.0.2 (2017-03-25)
+------------------
+
+- **Bugfix** `RESIZE_RAISE_ON_GENERATE_IN_PROGRESS` wasn't respected - error was always raised.
+
 2.0.1 (2017-03-23)
 ------------------
 
