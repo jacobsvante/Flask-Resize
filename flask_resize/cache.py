@@ -26,6 +26,7 @@ def make(config):
             host=config.redis_host,
             port=config.redis_port,
             db=config.redis_db,
+            password=config.redis_password,
             key=config.redis_key,
         )
         return RedisCache(**kw)
@@ -140,6 +141,7 @@ class RedisCache(Cache):
         host='localhost',
         port=6379,
         db=0,
+        password=None,
         key=constants.DEFAULT_REDIS_KEY
     ):
         if redis is None:
@@ -147,11 +149,13 @@ class RedisCache(Cache):
                 "Redis must be installed for Redis support. "
                 "Package found @ https://pypi.python.org/pypi/redis."
             )
-        self.host = host
-        self.port = port
-        self.db = db
         self.key = key
-        self.redis = redis.StrictRedis(host=host, port=port, db=db)
+        self.redis = redis.StrictRedis(
+            host=host,
+            port=port,
+            db=db,
+            password=password,
+        )
 
     def exists(self, unique_key):
         """

@@ -142,6 +142,9 @@ There are also some optional settings. They are listed below, with their default
     # Which db to use for redis if it is enabled with `RESIZE_CACHE_STORE`
     RESIZE_REDIS_DB = 0
 
+    # Which password to use for redis if it is enabled with `RESIZE_CACHE_STORE`. Defaults to not using a password.
+    RESIZE_REDIS_PASSWORD = None
+
     # Which key to use for redis if it is enabled with `RESIZE_CACHE_STORE`
     RESIZE_REDIS_KEY = 0
 
@@ -160,3 +163,7 @@ There are also some optional settings. They are listed below, with their default
 
 .. versionadded:: 1.0.4
    ``RESIZE_RAISE_ON_GENERATE_IN_PROGRESS`` was added.
+
+
+.. versionadded:: 2.0.3
+   ``RESIZE_REDIS_PASSWORD`` was added.
