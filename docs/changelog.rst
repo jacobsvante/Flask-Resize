@@ -1,17 +1,96 @@
 Changelog
 =========
 
-0.6.0 (2016-10-01)
+2.0.3 (2017-04-19)
+------------------
+
+- **Feature** `RESIZE_REDIS_PASSWORD` added
+
+2.0.2 (2017-03-25)
+------------------
+
+- **Bugfix** `RESIZE_RAISE_ON_GENERATE_IN_PROGRESS` wasn't respected - error was always raised.
+
+2.0.1 (2017-03-23)
+------------------
+
+- **Bugfix** `s3` was erroneously added as a dependency instead of `boto3` in the recommended installation option `flask-resize[full]`
+
+
+2.0.0 (2017-03-22)
+------------------
+
+- **Feature** Added commands for generating images, listing/clearing cache and generated images (see :ref:`cli`)
+- **Feature** Ability to run resizing without a Flask app being involved (see :ref:`standalone-usage`)
+- **Enhancement** Windows is now supported, at least on paper. The test suite runs on a Windows host after each pushed commit, using the excellent CI service AppVeyor. The project still needs some real world usage though. Please report any issues you might find to the Github issues page. (see :ref:`compatibility`)
+- **Enhancement** `dimensions` is now an optional argument. Useful when just converting to a different format for example. (see :ref:`resize-arguments-dimensions`)
+- **Enhancement** Added some basic logging statements for debugging purposes
+- **Enhancement** Pypy and Python 3.6 are now officially supported
+- **Bugfix** Concurrent generation of the same image wasn't handled properly
+- **Bugfix** There was a logic error when installing `flask-resize[full]`. `redis` and `s3` weren't installed below python3.4.
+- **Breaking** `flask_resize.resize` is no longer available. It's instead accessible when creating the Flask app extension. I.e: `resize = flask_resize.Resize(app)` or `resize = flask_resize.Resize(); resize.init_app(app)`
+
+1.0.3 (2017-03-17)
+------------------
+
+- **Improvement** Add image to cache when the path is found while checking for its existence, even though it wasn't in the local cache since before. This way a path can be cached even though the generation was done on another computer, or after the local cache has been cleared.
+
+1.0.2 (2017-03-17)
+------------------
+
+- **Breaking** Removed option `RESIZE_USE_S3` and replaced it with `RESIZE_STORAGE_BACKEND`, more explicit and simple.
+- **Improvement** Automatically load `RESIZE_S3_ACCESS_KEY`, `RESIZE_S3_SECRET_KEY` and `RESIZE_S3_REGION` settings using `botocore.session`, in case they are not explicitly specified.
+
+1.0.1 (2017-03-17)
+------------------
+
+- **Improvement** Added the option `RESIZE_S3_REGION`. Can be set if the S3 region has to be specified manually for some reason.
+
+1.0.0 (2017-03-17)
+------------------
+
+Flask-Resize 1.0  🎊  🍻  🎈  🎉
+
+The big changes are:
+
+- **Feature** Support Amazon S3 as a storage backend
+- **Feature** Support Redis caching. The usefulness of this is threefold:
+    1. When using S3 as a storage backend to save on HTTP requests
+    2. No need to check if file exists on file storage backends - perhaps noticable on servers with slow disk IO
+    3. Much lower chance of multiple threads/processes trying to generate the
+       same image at the same time.
+- **Breaking** Please note that this release forces all generated images to be recreated because of a change in the creation of the "unique key" which is used to determine if the image has already been generated.
+- **Breaking** Drop RESIZE_HASH_FILENAME as an option - always hash the cache object's filename. Less moving parts in the machinery.
+- **Breaking** Rename RESIZE_CACHE_DIR to RESIZE_TARGET_DIRECTORY to better reflect what the setting does, now that we have Redis caching.
+- **Breaking** Use SHA1 as default filename hashing method for less likelyhood of collision
+
+0.8.0 (2016-10-01)
+------------------
+
+- **Improvement** Release as a universal python wheel
+
+0.8.0 (2016-09-07)
+------------------
+
+- **Feature** Support SVG as input format by utilizing [CairoSVG](http://cairosvg.org/).
+
+0.7.0 (2016-09-01)
+------------------
+
+- **Improvement** Keep ICC profile from source image
+- **Minor fix** Clarify that Python 3.5 is supported
+
+0.6.0 (2015-10-01)
 ------------------
 
 - **Bugfix** Fill doesn't cut the image any more
 
-0.5.2 (2016-06-12)
+0.5.2 (2015-06-12)
 ------------------
 
 - **Bugfix** Fix Python 2 regression
 
-0.5.1 (2016-06-12)
+0.5.1 (2015-06-12)
 ------------------
 
 - **Improvement** Tests that actually convert images with the :func:`flask_resize.resize` command.

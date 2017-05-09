@@ -1,13 +1,73 @@
 language: python
-python:
-  - 2.7
-  - 3.3
-  - 3.4
+sudo: false
+cache: pip
+
+services:
+  - redis-server
+
+matrix:
+  include:
+  - python: 2.7
+    env: TOXENV=py-release
+  - python: 2.7
+    env: TOXENV=py-full
+  - python: 2.7
+    env: TOXENV=py-redis
+  - python: 2.7
+    env: TOXENV=py-s3
+  - python: 3.3
+    env: TOXENV=py-release
+  - python: 3.3
+    env: TOXENV=py-full
+  - python: 3.3
+    env: TOXENV=py-redis
+  - python: 3.3
+    env: TOXENV=py-s3
+  - python: 3.4
+    env: TOXENV=py-release
+  - python: 3.4
+    env: TOXENV=py-full
+  - python: 3.4
+    env: TOXENV=py-redis
+  - python: 3.4
+    env: TOXENV=py-s3
+  - python: 3.4
+    env: TOXENV=py-svg
+  - python: 3.5
+    env: TOXENV=py-release
+  - python: 3.5
+    env: TOXENV=py-full
+  - python: 3.5
+    env: TOXENV=py-redis
+  - python: 3.5
+    env: TOXENV=py-s3
+  - python: 3.5
+    env: TOXENV=py-svg
+  - python: 3.6
+    env: TOXENV=py-release
+  - python: 3.6
+    env: TOXENV=py-full
+  - python: 3.6
+    env: TOXENV=py-redis
+  - python: 3.6
+    env: TOXENV=py-s3
+  - python: 3.6
+    env: TOXENV=py-svg
+  - python: pypy
+    env: TOXENV=py-release
+  - python: pypy
+    env: TOXENV=py-full
+  - python: pypy
+    env: TOXENV=py-redis
+  - python: pypy
+    env: TOXENV=py-s3
+
 install:
-    - pip install .
-before_script:
-    - pip install -r requirements.txt
-    - pip install -r requirements_test.txt
-script: coverage run --source=flask_resize -m py.test
+    - pip install tox
+
+script:
+    - tox
+
 after_success:
+    - pip install coveralls
     - coveralls

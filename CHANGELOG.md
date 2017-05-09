@@ -1,3 +1,3 @@
 # Changelog
 
-[See the docs](https://flask-resize.readthedocs.org/en/latest/changelog.html)
+[See the docs](https://flask-resize.readthedocs.io/changelog.html)

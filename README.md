@@ -13,14 +13,26 @@
 
 ## About
 
-Flask extension for automating the resizing of images in your templates. Can convert to/from JPEG/PNG, resize to fit and crop.
+Flask extension for resizing images in your code and templates. Can convert from JPEG|PNG|SVG to JPEG|PNG, resize to fit and crop. File-based and S3-based storage options are available.
 
 Created by [Jacob Magnusson](https://twitter.com/jacobsvante_).
 
 ## Installation
 
-    pip install Flask-Resize
+    pip install flask-resize
+
+    # With S3
+    pip install flask-resize[s3]
+
+    # With Redis caching
+    pip install flask-resize[redis]
+
+    # With SVG source file support
+    pip install flask-resize[svg]
+
+    # With all features above
+    pip install flask-resize[full]
 
 ## Documentation
 
-Found @ [flask-resize.readthedocs.org](https://flask-resize.readthedocs.org/).
+Found @ [flask-resize.readthedocs.io](https://flask-resize.readthedocs.io/).
