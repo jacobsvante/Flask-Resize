@@ -350,7 +350,7 @@ class Resizer:
         self.target_directory = target_directory
         self.raise_on_generate_in_progress = raise_on_generate_in_progress
         self.noop = noop
-        #self._fix_base_url()
+        self._fix_base_url()
 
     def _fix_base_url(self):
         if not self.base_url.endswith('/'):
