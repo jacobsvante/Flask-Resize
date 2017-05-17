@@ -102,15 +102,15 @@ def create_placeholder_image(width=None, height=None, message=None):
                                       placeholder_height)
     if message is not None:
         placeholder_text += u' ({})'.format(message)
-    text_fill = (255, ) * 3
-    bg_fill = (220, ) * 3
-    img = Image.new('RGB', (placeholder_width, placeholder_height), bg_fill)
+    text_fit = (255, ) * 3
+    bg_fit = (220, ) * 3
+    img = Image.new('RGB', (placeholder_width, placeholder_height), bg_fit)
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype(_get_package_path('DroidSans.ttf'), size=36)
     text_width, text_height = draw.textsize(placeholder_text, font=font)
     draw.text((((placeholder_width - text_width) / 2),
                ((placeholder_height - text_height) / 2)),
-              text=placeholder_text, font=font, fill=text_fill)
+              text=placeholder_text, font=font, fit=text_fit)
     del draw
     return img
 
@@ -124,7 +124,7 @@ class ResizeTarget:
         dimensions=None,
         format=None,
         quality=80,
-        fill=False,
+        fit=False,
         bgcolor=None,
         upscale=True,
         progressive=True,
@@ -141,9 +141,9 @@ class ResizeTarget:
         )
         self.format = utils.parse_format(source_image_relative_url, format)
         self.quality = quality
-        self.fill = fill
+        self.fit = fit
         self.bgcolor = (
-            utils.parse_rgb(bgcolor, include_number_sign=False)
+            utils.parse_rgb(bgcolor, include_number_sign=True)
             if bgcolor is not None else None
         )
         self.upscale = upscale
@@ -160,9 +160,9 @@ class ResizeTarget:
     def _validate_arguments(self):
         if not self.source_image_relative_url and not self.use_placeholder:
             raise exc.EmptyImagePathError()
-        if self.fill and not all([self.width, self.height]):
+        if self.fit and not all([self.width, self.height]):
             raise exc.MissingDimensionsError(
-                'Fill requires both width and height to be set.'
+                'fit requires both width and height to be set.'
             )
 
     @property
@@ -176,8 +176,8 @@ class ResizeTarget:
             self.quality if self.format == constants.JPEG else '',
             self.width or 'auto',
             self.height or 'auto',
-            'fill' if self.fill else '',
-            'fill' if self.fill else 'no-fill',
+            'fit' if self.fit else '',
+            'fit' if self.fit else 'no-fit',
             'upscale' if self.upscale else 'no-upscale',
             self.bgcolor or '',
         ]
@@ -253,7 +253,7 @@ class ResizeTarget:
                 height=self.height,
                 upscale=self.upscale
             )
-            if self.fill:
+            if self.fit:
                 if self.bgcolor:
                     mat_color = ImageColor.getrgb(self.bgcolor)
                 elif self.format == constants.JPEG:
@@ -261,8 +261,9 @@ class ResizeTarget:
                 else:
                     mat_color = (0, 0, 0, 0)  # Transparent
                 resize_to_fit_kw['mat_color'] = mat_color
-
-            processor = pilkit.processors.ResizeToFit(**resize_to_fit_kw)
+                processor = pilkit.processors.ResizeToFit(**resize_to_fit_kw)
+            else:
+                processor = pilkit.processors.ResizeToFill(**resize_to_fit_kw)
             img = processor.process(img)
 
         options = {
@@ -349,7 +350,7 @@ class Resizer:
         self.target_directory = target_directory
         self.raise_on_generate_in_progress = raise_on_generate_in_progress
         self.noop = noop
-        self._fix_base_url()
+        #self._fix_base_url()
 
     def _fix_base_url(self):
         if not self.base_url.endswith('/'):
@@ -361,7 +362,7 @@ class Resizer:
         dimensions=None,
         format=None,
         quality=80,
-        fill=False,
+        fit=False,
         bgcolor=None,
         upscale=True,
         progressive=True,
@@ -382,8 +383,8 @@ class Resizer:
                 image is of type SVG/SVGZ, then PNG is used as default.
             quality (int):
                 Quality of the output image, if the format is JPEG. Defaults to 80.
-            fill (bool):
-                Fill the entire width and height that was specified if True,
+            fit (bool):
+                fit the entire width and height that was specified if True,
                 otherwise keep the original image dimensions. Defaults to False.
             bgcolor (Optional[:class:`str`]):
                 If specified this color will be used as background.
@@ -404,7 +405,7 @@ class Resizer:
             :class:`exc.ImageNotFoundError`:
                 If the image could not be found.
             :class:`exc.MissingDimensionsError`:
-                If ``fill`` argument was True, but width or height was not passed.
+                If ``fit`` argument was True, but width or height was not passed.
 
         Returns:
             str:
@@ -416,9 +417,9 @@ class Resizer:
 
                 resize('somedir/kittens.png', '600x400')
 
-            Resize and crop so that the image will fill the entire area::
+            Resize and crop so that the image will fit the entire area::
 
-                resize('somedir/kittens.png', '300x300', fill=1)
+                resize('somedir/kittens.png', '300x300', fit=1)
 
             Convert to JPG::
 
@@ -437,7 +438,7 @@ class Resizer:
             dimensions=dimensions,
             format=format,
             quality=quality,
-            fill=fill,
+            fit=fit,
             bgcolor=bgcolor,
             upscale=upscale,
             progressive=progressive,
