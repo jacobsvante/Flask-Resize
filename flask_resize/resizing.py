@@ -143,7 +143,7 @@ class ResizeTarget:
         self.quality = quality
         self.fill = fill
         self.bgcolor = (
-            utils.parse_rgb(bgcolor, include_number_sign=False)
+            utils.parse_rgb(bgcolor, include_number_sign=True)
             if bgcolor is not None else None
         )
         self.upscale = upscale
