@@ -124,7 +124,7 @@ class ResizeTarget:
         dimensions=None,
         format=None,
         quality=80,
-        fill=False,
+        fit=False,
         bgcolor=None,
         upscale=True,
         progressive=True,
@@ -141,7 +141,7 @@ class ResizeTarget:
         )
         self.format = utils.parse_format(source_image_relative_url, format)
         self.quality = quality
-        self.fill = fill
+        self.fit = fit
         self.bgcolor = (
             utils.parse_rgb(bgcolor, include_number_sign=True)
             if bgcolor is not None else None
@@ -253,7 +253,7 @@ class ResizeTarget:
                 height=self.height,
                 upscale=self.upscale
             )
-            if self.fill:
+            if self.fit:
                 if self.bgcolor:
                     mat_color = ImageColor.getrgb(self.bgcolor)
                 elif self.format == constants.JPEG:
