@@ -134,6 +134,8 @@ There are also some optional settings. They are listed below, with their default
     RESIZE_CACHE_STORE = 'noop' if redis is None else 'redis'
 
     # Which host to use for redis if it is enabled with `RESIZE_CACHE_STORE`
+    # This can also be a pre-configured `redis.StrictRedis` instance, in which
+    # case the redis options below are ignored by Flask-Resize.
     RESIZE_REDIS_HOST = 'localhost'
 
     # Which port to use for redis if it is enabled with `RESIZE_CACHE_STORE`

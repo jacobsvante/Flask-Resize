@@ -1,8 +1,7 @@
 import os
 from contextlib import contextmanager
 
-from . import constants, exc
-from ._compat import redis
+from . import _compat, constants, exc
 
 
 def make(config):
@@ -144,18 +143,25 @@ class RedisCache(Cache):
         password=None,
         key=constants.DEFAULT_REDIS_KEY
     ):
-        if redis is None:
+        if _compat.redis is None:
             raise exc.RedisImportError(
                 "Redis must be installed for Redis support. "
                 "Package found @ https://pypi.python.org/pypi/redis."
             )
         self.key = key
-        self.redis = redis.StrictRedis(
-            host=host,
-            port=port,
-            db=db,
-            password=password,
-        )
+        self._host = host
+        self._port = port
+        self._db = db
+
+        if isinstance(host, _compat.string_types):
+            self.redis = _compat.redis.StrictRedis(
+                host=host,
+                port=port,
+                db=db,
+                password=password,
+            )
+        else:
+            self.redis = host
 
     def exists(self, unique_key):
         """

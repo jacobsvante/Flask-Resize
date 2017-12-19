@@ -1,6 +1,11 @@
 Changelog
 =========
 
+2.0.4 (2017-12-19)
+------------------
+
+- **Feature** Add the ability to pass in a pre-configured redis host with option `RESIZE_REDIS_HOST`.
+
 2.0.3 (2017-04-19)
 ------------------
 
