@@ -69,6 +69,7 @@ def redis_cache():
     else:
         class FakeRedis:
             key = None
+            _host = None
         # NOTE: Won't be used as long as @tests.decorators.requires_redis
         #       is used.
         cache_store = FakeRedis()
