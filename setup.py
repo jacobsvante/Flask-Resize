@@ -19,17 +19,10 @@ from setuptools import setup, find_packages
 
 appname = 'Flask-Resize'
 pkgname = appname.lower().replace('-', '_')
-metadata_relpath = '{}/metadata.py'.format(pkgname)
-
-# Get package metadata. We use exec here instead of importing the
-# package directly, so we can avoid any potential import errors.
-with open(metadata_relpath) as fh:
-    metadata = {}
-    exec(fh.read(), globals(), metadata)
 
 setup(
     name=appname,
-    version=metadata['__version__'],
+    version='2.0.3',
     description='Flask extension for resizing images in code and templates',
     long_description=__doc__,
     packages=find_packages(),
