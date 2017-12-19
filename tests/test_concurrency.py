@@ -42,6 +42,7 @@ def test_generate_in_progress_resizer_option_true(
     config = Config(
         root=str(tmpdir),
         url='/',
+        redis_host=redis_cache.redis,
         raise_on_generate_in_progress=True
     )
     resizer = flask_resize.make_resizer(config)
@@ -69,6 +70,7 @@ def test_generate_in_progress_resizer_option_false(
     config = Config(
         root=str(tmpdir),
         url='/',
+        redis_host=redis_cache.redis,
         raise_on_generate_in_progress=False
     )
     resizer = flask_resize.make_resizer(config)

@@ -9,6 +9,7 @@ def create_resizeapp(RESIZE_ROOT=None, **settings):
         static_folder=RESIZE_ROOT,
         static_url_path='/',
     )
+    settings.setdefault('RESIZE_CACHE_STORE', 'noop')
     app.config.update(settings, RESIZE_ROOT=RESIZE_ROOT, TESTING=True)
     Resize(app)
     return app

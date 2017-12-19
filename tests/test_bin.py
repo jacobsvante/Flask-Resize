@@ -16,10 +16,12 @@ def env(tmpdir, redis_cache):
         """
 RESIZE_URL = 'https://example.com'
 RESIZE_ROOT = '{root}'
+RESIZE_REDIS_HOST = '{redis_host}'
 RESIZE_REDIS_KEY = '{cache_key}'
         """
         .format(
             root=str(basedir).replace('\\', '\\\\'),
+            redis_host=redis_cache._host,
             cache_key=redis_cache.key,
         ).strip()
     )

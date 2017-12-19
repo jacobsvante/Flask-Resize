@@ -63,6 +63,7 @@ def filestorage(tmpdir):
 def redis_cache():
     if _compat.redis:
         cache_store = flask_resize.cache.RedisCache(
+            host=os.environ.get('REDIS_HOST', 'localhost'),
             key='flask-resize-redis-test-{}'.format(uuid.uuid4().hex)
         )
     else:
