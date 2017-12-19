@@ -103,7 +103,9 @@ class FileStorage(Storage):
     passed in to the constructor.
 
     Args:
-        base_path (str): The directory where files will be read from and written to. Expected to use the local OS's path separator.
+        base_path (str):
+            The directory where files will be read from and written to.
+            Expected to use the local OS's path separator.
 
     """
 
@@ -234,9 +236,15 @@ class S3Storage(Storage):
 
     Args:
         bucket (str): Bucket name
-        access_key (Any[str, None]): The access key. Defaults to reading from the local AWS config.
-        secret_key (Any[str, None]): The secret access key. Defaults to reading from the local AWS config.
-        region_name (Any[str, None]): The name of the bucket's region. Defaults to reading from the local AWS config.
+        access_key (Any[str, None]):
+            The access key.
+            Defaults to reading from the local AWS config.
+        secret_key (Any[str, None]):
+            The secret access key.
+            Defaults to reading from the local AWS config.
+        region_name (Any[str, None]):
+            The name of the bucket's region.
+            Defaults to reading from the local AWS config.
         file_acl (str):
             The ACL to set on uploaded images. Defaults to "public-read"
 

@@ -34,12 +34,19 @@ class GenerateInProgress(RuntimeError):
 
 
 class CairoSVGImportError(ImportError):
-    """Raised when an SVG input file is encountered but CairoSVG is not installed."""
+    """
+    Raised when an SVG input file is encountered but CairoSVG is not
+    installed.
+    """
 
 
 class RedisImportError(ImportError):
-    """Raised when Redis cache is configured, but the `redis` library is not installed."""
+    """
+    Raised when Redis cache is configured, but the `redis` library is not
+    installed.
+    """
 
 
 class Boto3ImportError(ImportError):
-    """Raised when S3 is configured, but the `boto3` library is not installed."""
+    """Raised when S3 is configured, but the `boto3` library is not installed.
+    """

@@ -9,8 +9,8 @@ from flask import current_app
 from PIL import Image, ImageColor, ImageDraw, ImageFont
 
 from . import cache, constants, exc, storage, utils
-from .configuration import Config
 from ._compat import b, cairosvg
+from .configuration import Config
 
 logger = logging.getLogger('flask_resize')
 
@@ -75,7 +75,9 @@ def convert_svg(bdata):
 
 
 def create_placeholder_image(width=None, height=None, message=None):
-    """Create a placeholder image that specified its width and height, and an optional text.
+    """
+    Create a placeholder image that specified its width and height, and an
+    optional text.
 
     Args:
         width (Optional[:class:`str`]):
@@ -377,14 +379,16 @@ class Resizer:
                 Uses the format of :func:`parse_dimensions`. No resizing
                 is done if None is passed in.
             format (Optional[:class:`str`]):
-                Format to convert into. Defaults to using the same format as the
-                original image. An exception to this default is when the source
-                image is of type SVG/SVGZ, then PNG is used as default.
+                Format to convert into. Defaults to using the same format as
+                the original image. An exception to this default is when the
+                source image is of type SVG/SVGZ, then PNG is used as default.
             quality (int):
-                Quality of the output image, if the format is JPEG. Defaults to 80.
+                Quality of the output image, if the format is JPEG.
+                Defaults to 80.
             fill (bool):
                 Fill the entire width and height that was specified if True,
-                otherwise keep the original image dimensions. Defaults to False.
+                otherwise keep the original image dimensions.
+                Defaults to False.
             bgcolor (Optional[:class:`str`]):
                 If specified this color will be used as background.
             upscale (bool):
@@ -404,7 +408,8 @@ class Resizer:
             :class:`exc.ImageNotFoundError`:
                 If the image could not be found.
             :class:`exc.MissingDimensionsError`:
-                If ``fill`` argument was True, but width or height was not passed.
+                If ``fill`` argument was True, but width or height was
+                not passed.
 
         Returns:
             str:

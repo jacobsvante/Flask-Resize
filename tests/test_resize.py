@@ -140,9 +140,21 @@ def test_fill_dimensions(tmpdir, image1_data, resizetarget_opts):
 
 
 SVG_DATA = """<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg width="100px" height="100px" viewBox="0 0 100 100" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<svg
+    width="100px"
+    height="100px"
+    viewBox="0 0 100 100"
+    version="1.1"
+    xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs></defs>
-    <rect id="Rectangle" fill="#000000" x="0" y="0" width="100" height="100"></rect>
+    <rect
+        id="Rectangle"
+        fill="#000000"
+        x="0"
+        y="0"
+        width="100"
+        height="100"></rect>
 </svg>"""
 
 
