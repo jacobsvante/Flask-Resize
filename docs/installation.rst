@@ -41,7 +41,7 @@ Development version
 Compatibility
 -------------
 
-Tested with Python 2.7/3.3/3.4/3.5/3.6/pypy and latest version of Flask.
+Tested with Python 2.7/3.4/3.5/3.6/pypy and latest version of Flask.
 
 Should work well on most Linux and MacOS versions.
 

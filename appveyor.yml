@@ -10,12 +10,6 @@ environment:
       TOXENV: py-redis
     - PYTHON: "C:\\Python27"
       TOXENV: py-s3
-    - PYTHON: "C:\\Python33"
-      TOXENV: py-release
-    - PYTHON: "C:\\Python33"
-      TOXENV: py-redis
-    - PYTHON: "C:\\Python33"
-      TOXENV: py-s3
     - PYTHON: "C:\\Python34"
       TOXENV: py-release
     - PYTHON: "C:\\Python34"
