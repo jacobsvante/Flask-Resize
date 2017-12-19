@@ -1,0 +1,9 @@
+*
+!test.docker-entrypoint.sh
+!flask_resize/*.py
+!flask_resize/fonts/*
+!tests/*.py
+!setup.py
+!tox.ini
+!.isort.cfg
+!conftest.py

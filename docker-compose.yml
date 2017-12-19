@@ -1,0 +1,72 @@
+# Scripts for running the tests inside docker
+# NOTE: pypy not added here. Needs to be run in tox.
+# NOTE: The tests are run with all dependencies installed
+
+version: "3.4"
+
+services:
+  redis:
+    image: redis:3.2
+  py27:
+    image: flask-resize-test:py27
+    build:
+      context: .
+      dockerfile: ./test.Dockerfile
+      args:
+        PYTHON_VERSION: "2.7"
+    command: test
+    environment:
+      REDIS_HOST: redis
+    volumes:
+        - ./tests:/app/tests
+        - ./flask_resize:/app/flask_resize
+  py34:
+    image: flask-resize-test:py34
+    build:
+      context: .
+      dockerfile: ./test.Dockerfile
+      args:
+        PYTHON_VERSION: "3.4"
+    command: test
+    environment:
+      REDIS_HOST: redis
+    volumes:
+        - ./tests:/app/tests
+        - ./flask_resize:/app/flask_resize
+  py35:
+    image: flask-resize-test:py35
+    build:
+      context: .
+      dockerfile: ./test.Dockerfile
+      args:
+        PYTHON_VERSION: "3.5"
+    command: test
+    environment:
+      REDIS_HOST: redis
+    volumes:
+        - ./tests:/app/tests
+        - ./flask_resize:/app/flask_resize
+  py36:
+    image: flask-resize-test:py36
+    build:
+      context: .
+      dockerfile: ./test.Dockerfile
+      args:
+        PYTHON_VERSION: "3.6"
+    command: test
+    environment:
+      REDIS_HOST: redis
+    volumes:
+        - ./tests:/app/tests
+        - ./flask_resize:/app/flask_resize
+  lint:
+    image: flask-resize-test:py36
+    command: lint
+    build:
+      context: .
+      dockerfile: ./test.Dockerfile
+      args:
+        PYTHON_VERSION: "3.6"
+    volumes:
+        - ./tests:/app/tests
+        - ./flask_resize:/app/flask_resize

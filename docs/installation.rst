@@ -57,6 +57,20 @@ Running the tests
     pip install tox
     tox
 
+You can also run the tests inside docker:
+
+.. code:: sh
+
+    docker-compose --build up
+
+Or to run a single python version's tests:
+
+.. code:: sh
+
+    docker-compose run py36
+
+Note that the tests in docker are run with all dependencies installed. See docker-compose.yml for more info.
+
 Generating the docs
 -------------------
 
