@@ -39,7 +39,7 @@ def test_resizetarget_init(filestorage):
 
     assert(
         target.unique_key ==
-        'resized-images/e1307a6b8f166778588914d5130bd92bcd7f20ca.jpg'
+        'resized-images/e1/30/7a6b8f166778588914d5130bd92bcd7f20ca.jpg'
     )
 
 
@@ -85,12 +85,12 @@ def test_resize_filter(tmpdir, image1_data, image2_data):
 
     file1_expected_url = (
         resize_url +
-        'resized-images/ac17b732cabcc4eeb783cd994d0e169665b3bb68.png'
+        'resized-images/ac/17/b732cabcc4eeb783cd994d0e169665b3bb68.png'
     )
 
     file2_expected_url = (
         resize_url +
-        'resized-images/add9a8c8531825a56f58289087b1f892c5e1348f.png'
+        'resized-images/ad/d9/a8c8531825a56f58289087b1f892c5e1348f.png'
     )
 
     app = create_resizeapp(

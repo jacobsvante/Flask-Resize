@@ -190,7 +190,7 @@ class ResizeTarget:
         hash.update(b(''.join(str(a) for a in cache_key_args)))
         name = hash.hexdigest()
         return '.'.join([
-            '/'.join([self.target_directory, name]),
+            '/'.join([self.target_directory, name[:2], name[2:4], name[4:]]),
             self.file_extension
         ])
 
