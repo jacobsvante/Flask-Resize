@@ -1,6 +1,14 @@
 Changelog
 =========
 
+2.0.5 (2020-02-07)
+------------------
+
+- **Bugfix** Fixed path if SERVER_NAME is set in config
+- **Bugfix** Fixed absolute image paths
+- **Enhancement** Hierarchy of generated paths in target directory …
+
+
 2.0.4 (2017-12-19)
 ------------------
 
