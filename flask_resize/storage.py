@@ -122,6 +122,9 @@ class FileStorage(Storage):
         Returns:
             str: The full path
         """
+        # Support absolute image urls
+        if key.startswith('/'):
+            key = key[1:]
         key = key.replace('/', os.sep)
         return os.path.join(self.base_path, key)
 
