@@ -58,7 +58,7 @@ def make(config):
         if not config.root.endswith(os.sep):
             config.root = config.root + os.sep
 
-        store = FileStorage(base_path=config.root, base_host=config.url)
+        store = FileStorage(base_path=config.root, base_host=config.domain)
 
     else:
         raise RuntimeError(
@@ -123,11 +123,16 @@ class FileStorage(Storage):
         Returns:
             str: The full path
         """
+        if key.startswith(self.base_host):
+            key = key[len(self.base_host):]
+        # TODO: refactor this:
+        if key.startswith(f"http://{self.base_host}"):
+            key = key[len(f"http://{self.base_host}"):]
+        if key.startswith(f"https://{self.base_host}"):
+            key = key[len(f"https://{self.base_host}"):]
         # Support absolute image urls
         if key.startswith('/'):
             key = key[1:]
-        if key.startswith(self.base_host):
-            key = key[len(self.base_host):]
         key = key.replace('/', os.sep)
         return os.path.join(self.base_path, key)
 
