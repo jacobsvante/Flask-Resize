@@ -19,17 +19,17 @@ import tempfile
 
 
 def add_mock_config_for_flask_resize_bin():
-    _, tempconf_path = tempfile.mkstemp(suffix='.py')
-    with open(tempconf_path, 'w') as fp:
+    _, tempconf_path = tempfile.mkstemp(suffix=".py")
+    with open(tempconf_path, "w") as fp:
         fp.write("RESIZE_ROOT = RESIZE_URL = '/'".format(tempconf_path))
-    os.environ['FLASK_RESIZE_CONF'] = tempconf_path
+    os.environ["FLASK_RESIZE_CONF"] = tempconf_path
 
 
 add_mock_config_for_flask_resize_bin()
 
 
-package_name = 'flask_resize'
-metadata_fn = '../{}/metadata.py'.format(package_name)
+package_name = "flask_resize"
+metadata_fn = "../{}/metadata.py".format(package_name)
 
 # Get package metadata. To avoid loading the package __init__ we
 # use exec instead.
@@ -40,48 +40,48 @@ with open(metadata_fn) as fh:
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-needs_sphinx = '1.3'
+needs_sphinx = "1.3"
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
-    'sphinxcontrib.napoleon',
-    'sphinxarg.ext',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
+    "sphinxcontrib.napoleon",
+    "sphinxarg.ext",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ".rst"
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = "index"
 
 # General information about the project.
-project = 'Flask-Resize'
-copyright = '2013, Jacob Magnusson'
-author = 'Jacob Magnusson'
+project = "Flask-Resize"
+copyright = "2013, Jacob Magnusson"
+author = "Jacob Magnusson"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = metadata['__version__']
+version = metadata["__version__"]
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -100,7 +100,7 @@ language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ["_build"]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -118,7 +118,7 @@ exclude_patterns = ['_build']
 # show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
 # modindex_common_prefix = []
@@ -164,7 +164,7 @@ todo_include_todos = False
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -227,20 +227,17 @@ html_static_path = ['_static']
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Flask-Resizedoc'
+htmlhelp_basename = "Flask-Resizedoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     # 'papersize': 'letterpaper',
-
     # The font size ('10pt', '11pt' or '12pt').
     # 'pointsize': '10pt',
-
     # Additional stuff for the LaTeX preamble.
     # 'preamble': '',
-
     # Latex figure (float) alignment
     # 'figure_align': 'htbp',
 }
@@ -251,10 +248,10 @@ latex_elements = {
 latex_documents = [
     (
         master_doc,
-        'Flask-Resize.tex',
-        'Flask-Resize Documentation',
-        'Jacob Magnusson',
-        'manual'
+        "Flask-Resize.tex",
+        "Flask-Resize Documentation",
+        "Jacob Magnusson",
+        "manual",
     ),
 ]
 
@@ -283,10 +280,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'flask-resize', 'Flask-Resize Documentation',
-     [author], 1)
-]
+man_pages = [(master_doc, "flask-resize", "Flask-Resize Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -300,12 +294,12 @@ man_pages = [
 texinfo_documents = [
     (
         master_doc,
-        'Flask-Resize',
-        'Flask-Resize Documentation',
+        "Flask-Resize",
+        "Flask-Resize Documentation",
         author,
-        'Flask-Resize',
-        'One line description of project.',
-        'Miscellaneous'
+        "Flask-Resize",
+        "One line description of project.",
+        "Miscellaneous",
     ),
 ]
 
@@ -323,19 +317,20 @@ texinfo_documents = [
 
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.4', None),
-    'flask': ('http://flask.pocoo.org/docs/0.10/', None),
-    'pillow': ('https://pillow.readthedocs.io/en/4.0.x/', None),
-    'pilkit': ('https://pilkit.readthedocs.io/en/latest/', None),
+    "python": ("https://docs.python.org/3.4", None),
+    "flask": ("http://flask.pocoo.org/docs/0.10/", None),
+    "pillow": ("https://pillow.readthedocs.io/en/4.0.x/", None),
+    "pilkit": ("https://pilkit.readthedocs.io/en/latest/", None),
 }
 
 
 # on_rtd is whether we are on readthedocs.org
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
+
+    html_theme = "sphinx_rtd_theme"
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 napoleon_google_docstring = True

@@ -20,7 +20,7 @@ def make(config):
         RuntimeError: If another `RESIZE_CACHE_STORE` value was set
 
     """
-    if config.cache_store == 'redis':
+    if config.cache_store == "redis":
         kw = dict(
             host=config.redis_host,
             port=config.redis_port,
@@ -29,12 +29,11 @@ def make(config):
             key=config.redis_key,
         )
         return RedisCache(**kw)
-    elif config.cache_store == 'noop':
+    elif config.cache_store == "noop":
         return NoopCache()
     else:
         raise RuntimeError(
-            'Non-supported RESIZE_CACHE_STORE value: "{}"'
-            .format(config.cache_store)
+            f"Non-supported RESIZE_CACHE_STORE value: '{config.cache_store}'"
         )
 
 
@@ -137,11 +136,11 @@ class RedisCache(Cache):
 
     def __init__(
         self,
-        host='localhost',
+        host="localhost",
         port=6379,
         db=0,
         password=None,
-        key=constants.DEFAULT_REDIS_KEY
+        key=constants.DEFAULT_REDIS_KEY,
     ):
         if _compat.redis is None:
             raise exc.RedisImportError(
@@ -218,11 +217,7 @@ class RedisCache(Cache):
         return [v.decode() for v in self.redis.smembers(self.key)]
 
     @contextmanager
-    def transaction(
-        self,
-        unique_key,
-        ttl=600
-    ):
+    def transaction(self, unique_key, ttl=600):
         """
         Context-manager to use when it's important that no one else
         handles `unique_key` at the same time (for example when
@@ -235,7 +230,7 @@ class RedisCache(Cache):
                 Time before the transaction is deemed irrelevant and discarded
                 from cache. Is only relevant if the host forcefully restarts.
         """
-        tkey = '-transaction-'.join([self.key, unique_key])
+        tkey = "-transaction-".join([self.key, unique_key])
 
         if self.redis.set(tkey, str(os.getpid()), nx=True):
             self.redis.expire(tkey, ttl)

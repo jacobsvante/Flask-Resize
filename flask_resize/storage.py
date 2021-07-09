@@ -21,13 +21,13 @@ def make(config):
     """
 
     if config.noop:
-        config.url = '/'
+        config.url = "/"
         return None
 
-    elif config.storage_backend == 's3':
+    elif config.storage_backend == "s3":
         if not config.s3_bucket:
             raise RuntimeError(
-                'You must specify RESIZE_S3_BUCKET when '
+                "You must specify RESIZE_S3_BUCKET when "
                 'RESIZE_STORAGE_BACKEND is set to "s3".'
             )
 
@@ -39,22 +39,20 @@ def make(config):
         )
         config.url = store.base_url
 
-    elif config.storage_backend == 'file':
+    elif config.storage_backend == "file":
         if not isinstance(config.url, string_types):
             raise RuntimeError(
-                'You must specify a valid RESIZE_URL '
+                "You must specify a valid RESIZE_URL "
                 'when RESIZE_STORAGE_BACKEND is set to "file".'
             )
 
         if not isinstance(config.root, string_types):
             raise RuntimeError(
-                'You must specify a valid RESIZE_ROOT '
+                "You must specify a valid RESIZE_ROOT "
                 'when RESIZE_STORAGE_BACKEND is set to "file".'
             )
         if not os.path.isdir(config.root):
-            raise RuntimeError(
-                'Your RESIZE_ROOT does not exist or is a regular file.'
-            )
+            raise RuntimeError("Your RESIZE_ROOT does not exist or is a regular file.")
         if not config.root.endswith(os.sep):
             config.root = config.root + os.sep
 
@@ -62,8 +60,9 @@ def make(config):
 
     else:
         raise RuntimeError(
-            'Non-supported RESIZE_STORAGE_BACKEND value: "{}"'
-            .format(config.storage_backend)
+            'Non-supported RESIZE_STORAGE_BACKEND value: "{}"'.format(
+                config.storage_backend
+            )
         )
 
     return store
@@ -124,16 +123,16 @@ class FileStorage(Storage):
             str: The full path
         """
         if key.startswith(self.base_host):
-            key = key[len(self.base_host):]
+            key = key[len(self.base_host) :]
         # TODO: refactor this:
         if key.startswith(f"http://{self.base_host}"):
-            key = key[len(f"http://{self.base_host}"):]
+            key = key[len(f"http://{self.base_host}") :]
         if key.startswith(f"https://{self.base_host}"):
-            key = key[len(f"https://{self.base_host}"):]
+            key = key[len(f"https://{self.base_host}") :]
         # Support absolute image urls
-        if key.startswith('/'):
+        if key.startswith("/"):
             key = key[1:]
-        key = key.replace('/', os.sep)
+        key = key.replace("/", os.sep)
         return os.path.join(self.base_path, key)
 
     def get(self, key):
@@ -149,7 +148,7 @@ class FileStorage(Storage):
             raise exc.ImageNotFoundError()
         path = self._get_full_path(key)
         try:
-            with open(path, 'rb') as fp:
+            with open(path, "rb") as fp:
                 return fp.read()
         except IOError as e:
             if e.errno == 2:
@@ -170,8 +169,8 @@ class FileStorage(Storage):
         # Python 2 doesn't natively support `xb` mode as used below. Have to
         # manually check for the file's existence.
         if PY2 and self.exists(key):
-            raise exc.FileExistsError(17, 'File exists')
-        with open(full_path, 'wb' if PY2 else 'xb') as fp:
+            raise exc.FileExistsError(17, "File exists")
+        with open(full_path, "wb" if PY2 else "xb") as fp:
             fp.write(bdata)
 
     def exists(self, key):
@@ -212,15 +211,15 @@ class FileStorage(Storage):
             Generator[str, str, None]:
                 Yields subdirectory's filenames
         """
-        assert subdir, 'Subdir must be specified'
+        assert subdir, "Subdir must be specified"
         base_path = self.base_path
         if not base_path.endswith(os.sep):
             base_path += os.sep
         tree_base = os.path.join(base_path, subdir)
         for root, dirs, filenames in os.walk(tree_base, topdown=False):
             for filename in filenames:
-                root_relative_path = root[len(base_path):].replace(os.sep, '/')
-                relative_path = '/'.join([root_relative_path, filename])
+                root_relative_path = root[len(base_path) :].replace(os.sep, "/")
+                relative_path = "/".join([root_relative_path, filename])
                 yield relative_path
 
     def delete_tree(self, subdir):
@@ -267,7 +266,7 @@ class S3Storage(Storage):
         access_key=None,
         secret_key=None,
         region_name=None,
-        file_acl='public-read'
+        file_acl="public-read",
     ):
         if boto3 is None:
             raise exc.Boto3ImportError(
@@ -278,15 +277,12 @@ class S3Storage(Storage):
         default_credentials = default_session.get_credentials()
 
         self.bucket_name = bucket
-        self.access_key = \
-            access_key or getattr(default_credentials, 'access_key', None)
-        self.secret_key = \
-            secret_key or getattr(default_credentials, 'secret_key', None)
-        self.region_name = \
-            region_name or default_session.get_config_variable('region')
-        self.file_acl = 'public-read'
+        self.access_key = access_key or getattr(default_credentials, "access_key", None)
+        self.secret_key = secret_key or getattr(default_credentials, "secret_key", None)
+        self.region_name = region_name or default_session.get_config_variable("region")
+        self.file_acl = "public-read"
         self.s3 = boto3.resource(
-            's3',
+            "s3",
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
             region_name=region_name,
@@ -300,7 +296,7 @@ class S3Storage(Storage):
         Returns:
             str: The URL
         """
-        return '/'.join([self.s3.meta.client._endpoint.host, self.bucket_name])
+        return "/".join([self.s3.meta.client._endpoint.host, self.bucket_name])
 
     def _verify_configuration(self):
         if self.access_key is None:
@@ -331,13 +327,13 @@ class S3Storage(Storage):
         try:
             resp = obj.get()
         except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 new_exc = exc.ImageNotFoundError(*e.args)
                 new_exc.original_exc = e
                 raise new_exc
             else:
                 raise
-        return resp['Body'].read()
+        return resp["Body"].read()
 
     def save(self, relative_path, bdata):
         """Store binary file data at specified key
@@ -347,10 +343,7 @@ class S3Storage(Storage):
             bdata (bytes): The file data
         """
         self.s3.meta.client.put_object(
-            Bucket=self.bucket_name,
-            Key=relative_path,
-            Body=bdata,
-            ACL=self.file_acl
+            Bucket=self.bucket_name, Key=relative_path, Body=bdata, ACL=self.file_acl
         )
 
     def exists(self, relative_path):
@@ -365,12 +358,9 @@ class S3Storage(Storage):
         if not relative_path:
             return False
         try:
-            self.s3.meta.client.head_object(
-                Bucket=self.bucket_name,
-                Key=relative_path
-            )
+            self.s3.meta.client.head_object(Bucket=self.bucket_name, Key=relative_path)
         except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == '404':
+            if e.response["Error"]["Code"] == "404":
                 return False
             else:
                 raise
@@ -400,18 +390,18 @@ class S3Storage(Storage):
             Generator[str, str, None]:
                 Yields subdirectory's keys
         """
-        assert subdir, 'Subdir must be specified'
-        if not subdir.endswith('/'):
-            subdir += '/'
+        assert subdir, "Subdir must be specified"
+        if not subdir.endswith("/"):
+            subdir += "/"
 
         kw = dict(Bucket=self.bucket_name, Prefix=subdir)
 
         while True:
             resp = self.s3.meta.client.list_objects_v2(**kw)
-            for obj in resp.get('Contents', ()):
-                yield obj['Key']
-            if resp.get('NextContinuationToken'):
-                kw['ContinuationToken'] = resp['NextContinuationToken']
+            for obj in resp.get("Contents", ()):
+                yield obj["Key"]
+            if resp.get("NextContinuationToken"):
+                kw["ContinuationToken"] = resp["NextContinuationToken"]
             else:
                 break
 
@@ -427,14 +417,12 @@ class S3Storage(Storage):
             Generator[str, str, None]:
                 Yields subdirectory's deleted keys
         """
-        assert subdir, 'Subdir must be specified'
+        assert subdir, "Subdir must be specified"
 
         for keys in utils.chunked(self.list_tree(subdir), 1000):
             self.s3.meta.client.delete_objects(
                 Bucket=self.bucket_name,
-                Delete={
-                    'Objects': [{'Key': key} for key in keys]
-                }
+                Delete={"Objects": [{"Key": key} for key in keys]},
             )
             for key in keys:
                 yield key

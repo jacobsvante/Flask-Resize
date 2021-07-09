@@ -48,5 +48,6 @@ class RedisImportError(ImportError):
 
 
 class Boto3ImportError(ImportError):
-    """Raised when S3 is configured, but the `boto3` library is not installed.
+    """
+    Raised when S3 is configured, but the `boto3` library is not installed.
     """

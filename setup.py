@@ -17,66 +17,65 @@ import sys
 from setuptools import setup, find_packages
 
 
-appname = 'Flask-Resize'
-pkgname = appname.lower().replace('-', '_')
+appname = "Flask-Resize"
+pkgname = appname.lower().replace("-", "_")
 
 setup(
     name=appname,
-    version='2.0.6',
-    description='Flask extension for resizing images in code and templates',
+    version="2.0.6",
+    description="Flask extension for resizing images in code and templates",
     long_description=__doc__,
     packages=find_packages(),
     package_dir={pkgname: pkgname},
     package_data={
         pkgname: [
-            'fonts/*.ttf',
+            "fonts/*.ttf",
         ],
     },
     install_requires=[
-        'argh',
-        'Flask',
-        'pilkit',
-        'Pillow',
+        "argh",
+        "Flask",
+        "pilkit",
+        "Pillow",
     ],
     extras_require={
-        'svg': ['cairosvg'],
-        'redis': ['redis'],
-        's3': ['boto3'],
-        'full': (
-            ['redis', 'boto3'] +
-            (['cairosvg'] if sys.version_info >= (3, 4) else [])
+        "svg": ["cairosvg"],
+        "redis": ["redis"],
+        "s3": ["boto3"],
+        "full": (
+            ["redis", "boto3"] + (["cairosvg"] if sys.version_info >= (3, 4) else [])
         ),
-        'test': [
-            'click>=6.7',
-            'coverage>=4.2',
-            'pytest>=3.0.7',
+        "test": [
+            "click>=6.7",
+            "coverage>=4.2",
+            "pytest>=3.0.7",
         ],
-        'test_s3': ['moto>=0.4.31'],
+        "test_s3": ["moto>=0.4.31"],
     },
     entry_points={
-        'console_scripts': {
-            'flask-resize = flask_resize.bin:parser.dispatch',
+        "console_scripts": {
+            "flask-resize = flask_resize.bin:parser.dispatch",
         },
     },
-    author='Jacob Magnusson',
-    author_email='m@jacobian.se',
-    url='https://github.com/jmagnusson/Flask-Resize',
-    license='BSD',
-    platforms='any',
+    author="Jacob Magnusson",
+    author_email="m@jacobian.se",
+    url="https://github.com/jmagnusson/Flask-Resize",
+    license="BSD",
+    platforms="any",
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: PyPy",
     ],
 )

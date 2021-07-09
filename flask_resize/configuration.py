@@ -9,11 +9,11 @@ class Config:
     noop = False
     root = None
     raise_on_generate_in_progress = False
-    storage_backend = 'file'
+    storage_backend = "file"
     target_directory = constants.DEFAULT_TARGET_DIRECTORY
     hash_method = constants.DEFAULT_NAME_HASHING_METHOD
-    cache_store = 'noop' if redis is None else 'redis'
-    redis_host = 'localhost'
+    cache_store = "noop" if redis is None else "redis"
+    redis_host = "localhost"
     redis_port = 6379
     redis_db = 0
     redis_password = None
@@ -25,8 +25,8 @@ class Config:
 
     def __init__(self, **config):
         for key, val in config.items():
-            if key.startswith('_') or key not in dir(self):
-                raise ValueError('Not a valid config val: {}'.format(key))
+            if key.startswith("_") or key not in dir(self):
+                raise ValueError(f"Not a valid config val: {key}")
             setattr(self, key, val)
 
     @classmethod
@@ -45,7 +45,7 @@ class Config:
                 in case a setting wasn't explicitly added to config.
 
         """
-        prefix = 'RESIZE_'
+        prefix = "RESIZE_"
         default_overrides = default_overrides or {}
         config = cls()
 
@@ -62,5 +62,5 @@ class Config:
     def from_pyfile(cls, filepath):
         conf = {}
         with open(filepath) as config_file:
-            exec(compile(config_file.read(), filepath, 'exec'), conf)
+            exec(compile(config_file.read(), filepath, "exec"), conf)
         return cls.from_dict(conf)

@@ -4,36 +4,32 @@ import argh
 
 import flask_resize
 
-config = flask_resize.configuration.Config.from_pyfile(
-    os.environ['FLASK_RESIZE_CONF']
-)
+config = flask_resize.configuration.Config.from_pyfile(os.environ["FLASK_RESIZE_CONF"])
 resize = flask_resize.make_resizer(config)
 
 
-@argh.named('images')
+@argh.named("images")
 def clear_images():
     """Delete all generated images from the storage backend"""
-    for filepath in resize.storage_backend.delete_tree(
-        resize.target_directory
-    ):
+    for filepath in resize.storage_backend.delete_tree(resize.target_directory):
         yield filepath
 
 
-@argh.named('cache')
+@argh.named("cache")
 def list_cache():
     """List all items found in cache"""
     for key in resize.cache_store.all():
         yield key
 
 
-@argh.named('images')
+@argh.named("images")
 def list_images():
     """List all generated images found in storage backend"""
     for key in resize.storage_backend.list_tree(resize.target_directory):
         yield key
 
 
-@argh.named('cache')
+@argh.named("cache")
 def sync_cache():
     """
     Syncs paths stored in the cache backend with what's in the storage backend
@@ -45,27 +41,27 @@ def sync_cache():
     The cache can then be synced with what's been added/removed from the
     bucket `my-dev-bucket`.
     """
-    generated_image_paths = set(resize.storage_backend.list_tree(
-        resize.target_directory
-    ))
+    generated_image_paths = set(
+        resize.storage_backend.list_tree(resize.target_directory)
+    )
     cached_paths = set(resize.cache_store.all())
 
-    for path in (cached_paths - generated_image_paths):
+    for path in cached_paths - generated_image_paths:
         resize.cache_store.remove(path)
-        yield 'Removed {}'.format(path)
+        yield "Removed {}".format(path)
 
-    for path in (generated_image_paths - cached_paths):
+    for path in generated_image_paths - cached_paths:
         resize.cache_store.add(path)
-        yield 'Added {}'.format(path)
+        yield "Added {}".format(path)
 
 
-@argh.named('cache')
+@argh.named("cache")
 def clear_cache():
     """Clear the cache backend from generated images' paths"""
     resize.cache_store.clear()
 
 
-@argh.named('all')
+@argh.named("all")
 def clear_all():
     """Clear both the cache and all generated images"""
     clear_cache()
@@ -73,8 +69,8 @@ def clear_all():
         yield filepath
 
 
-@argh.arg('-f', '--format')
-@argh.arg('-F', '--fill')
+@argh.arg("-f", "--format")
+@argh.arg("-F", "--fill")
 def generate(
     filename,
     dimensions=None,
@@ -84,7 +80,7 @@ def generate(
     bgcolor=None,
     upscale=True,
     progressive=True,
-    placeholder=False
+    placeholder=False,
 ):
     """
     Generate images passed in through stdin. Return URL for resulting image
@@ -118,18 +114,18 @@ argh.add_commands(parser, [generate])
 argh.add_commands(
     parser,
     [list_cache, list_images],
-    namespace='list',
+    namespace="list",
     title="Commands for listing images and cache",
 )
 argh.add_commands(
     parser,
     [sync_cache],
-    namespace='sync',
+    namespace="sync",
     title="Commands for syncing data",
 )
 argh.add_commands(
     parser,
     [clear_cache, clear_images, clear_all],
-    namespace='clear',
+    namespace="clear",
     title="Commands for clearing/deleting images and cache",
 )
