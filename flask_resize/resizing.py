@@ -263,15 +263,11 @@ class ResizeTarget:
 
         options = {
             "icc_profile": img.info.get("icc_profile"),
-        }
+        } if img.info.get("icc_profile") else {}
 
-        if self.format == constants.WEBP or self.format == constants.JPEG:
+        if self.format in [constants.WEBP, constants.JPEG]:
             options.update(
-                quality=int(self.quality)
-            )
-
-        if self.format == constants.JPEG:
-            options.update(
+                quality=int(self.quality),
                 progressive=self.progressive
             )
 

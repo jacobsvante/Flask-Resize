@@ -22,7 +22,7 @@ pkgname = appname.lower().replace("-", "_")
 
 setup(
     name=appname,
-    version="3.0.0",
+    version="3.0.1",
     description="Flask extension for resizing images in code and templates",
     long_description=__doc__,
     packages=find_packages(),

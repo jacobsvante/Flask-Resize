@@ -1,3 +1,5 @@
 # Changelog
 
-[See the docs](https://flask-resize.readthedocs.io/changelog.html)
+## [3.0.1] - 2021-07-10
+### Added
+ - Support WebP format
