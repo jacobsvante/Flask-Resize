@@ -7,6 +7,9 @@ DEFAULT_TARGET_DIRECTORY = "resized-images"
 DEFAULT_REDIS_KEY = "flask-resize"
 """Default key to store redis cache as"""
 
+WEBP = "WEBP"
+"""JPEG format"""
+
 JPEG = "JPEG"
 """JPEG format"""
 
@@ -16,5 +19,5 @@ PNG = "PNG"
 SVG = "SVG"
 """SVG format"""
 
-SUPPORTED_OUTPUT_FILE_FORMATS = (JPEG, PNG)
+SUPPORTED_OUTPUT_FILE_FORMATS = (WEBP, JPEG, PNG)
 """Image formats that can be generated"""

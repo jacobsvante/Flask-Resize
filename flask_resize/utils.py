@@ -64,7 +64,7 @@ def parse_dimensions(dimensions):
     return tuple((int(d) if d else None) for d in dims)
 
 
-def parse_rgb(v, include_number_sign=True):
+def parse_rgb(v, include_number_sign=True):  # TODO: Deprecated
     """Create a hex value color representation of the provided value
 
     Args:
@@ -85,8 +85,8 @@ def parse_rgb(v, include_number_sign=True):
     if v.startswith("#"):
         v = v[1:]
     if len(v) == 3:
-        v = u"".join(s + s for s in v)
-    return u"#" + v if include_number_sign else v
+        v = "".join(s + s for s in v)
+    return "#" + v if include_number_sign else v
 
 
 def parse_format(image_path, format=None):
@@ -115,7 +115,8 @@ def parse_format(image_path, format=None):
         format = constants.PNG
     if format not in constants.SUPPORTED_OUTPUT_FILE_FORMATS:
         raise exc.UnsupportedImageFormatError(
-            "JPEG and PNG are the only supported output " "file formats at the moment."
+            "WEBP, JPEG and PNG are the only supported output "
+            "file formats at the moment."
         )
     return format
 

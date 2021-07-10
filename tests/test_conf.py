@@ -14,7 +14,9 @@ def test_resize_settings():
     with pytest.raises(RuntimeError):
         create_resizeapp(RESIZE_ROOT=os.sep)
 
-    working_app = create_resizeapp(RESIZE_URL="http://test.dev", RESIZE_ROOT=os.sep)
+    working_app = create_resizeapp(
+        RESIZE_URL="http://test.dev", RESIZE_ROOT=os.sep
+    )
     assert isinstance(working_app, flask.Flask)
 
 

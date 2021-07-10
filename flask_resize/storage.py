@@ -28,7 +28,7 @@ def make(config):
         if not config.s3_bucket:
             raise RuntimeError(
                 "You must specify RESIZE_S3_BUCKET when "
-                'RESIZE_STORAGE_BACKEND is set to "s3".'
+                "RESIZE_STORAGE_BACKEND is set to `s3`."
             )
 
         store = S3Storage(
@@ -43,16 +43,18 @@ def make(config):
         if not isinstance(config.url, string_types):
             raise RuntimeError(
                 "You must specify a valid RESIZE_URL "
-                'when RESIZE_STORAGE_BACKEND is set to "file".'
+                "when RESIZE_STORAGE_BACKEND is set to `file`."
             )
 
         if not isinstance(config.root, string_types):
             raise RuntimeError(
                 "You must specify a valid RESIZE_ROOT "
-                'when RESIZE_STORAGE_BACKEND is set to "file".'
+                "when RESIZE_STORAGE_BACKEND is set to `file`."
             )
         if not os.path.isdir(config.root):
-            raise RuntimeError("Your RESIZE_ROOT does not exist or is a regular file.")
+            raise RuntimeError(
+                "Your RESIZE_ROOT does not exist or is a regular file."
+            )
         if not config.root.endswith(os.sep):
             config.root = config.root + os.sep
 
@@ -60,9 +62,8 @@ def make(config):
 
     else:
         raise RuntimeError(
-            'Non-supported RESIZE_STORAGE_BACKEND value: "{}"'.format(
-                config.storage_backend
-            )
+            f"Non-supported RESIZE_STORAGE_BACKEND "
+            f"value: {config.storage_backend}"
         )
 
     return store
@@ -123,12 +124,12 @@ class FileStorage(Storage):
             str: The full path
         """
         if key.startswith(self.base_host):
-            key = key[len(self.base_host) :]
+            key = key[len(self.base_host):]
         # TODO: refactor this:
         if key.startswith(f"http://{self.base_host}"):
-            key = key[len(f"http://{self.base_host}") :]
+            key = key[len(f"http://{self.base_host}"):]
         if key.startswith(f"https://{self.base_host}"):
-            key = key[len(f"https://{self.base_host}") :]
+            key = key[len(f"https://{self.base_host}"):]
         # Support absolute image urls
         if key.startswith("/"):
             key = key[1:]
@@ -218,7 +219,9 @@ class FileStorage(Storage):
         tree_base = os.path.join(base_path, subdir)
         for root, dirs, filenames in os.walk(tree_base, topdown=False):
             for filename in filenames:
-                root_relative_path = root[len(base_path) :].replace(os.sep, "/")
+                root_relative_path = root[len(base_path):].replace(
+                    os.sep, "/"
+                )
                 relative_path = "/".join([root_relative_path, filename])
                 yield relative_path
 
@@ -277,9 +280,15 @@ class S3Storage(Storage):
         default_credentials = default_session.get_credentials()
 
         self.bucket_name = bucket
-        self.access_key = access_key or getattr(default_credentials, "access_key", None)
-        self.secret_key = secret_key or getattr(default_credentials, "secret_key", None)
-        self.region_name = region_name or default_session.get_config_variable("region")
+        self.access_key = access_key or getattr(
+            default_credentials, "access_key", None
+        )
+        self.secret_key = secret_key or getattr(
+            default_credentials, "secret_key", None
+        )
+        self.region_name = region_name or default_session.get_config_variable(
+            "region"
+        )
         self.file_acl = "public-read"
         self.s3 = boto3.resource(
             "s3",
@@ -343,7 +352,10 @@ class S3Storage(Storage):
             bdata (bytes): The file data
         """
         self.s3.meta.client.put_object(
-            Bucket=self.bucket_name, Key=relative_path, Body=bdata, ACL=self.file_acl
+            Bucket=self.bucket_name,
+            Key=relative_path,
+            Body=bdata,
+            ACL=self.file_acl,
         )
 
     def exists(self, relative_path):
@@ -358,7 +370,9 @@ class S3Storage(Storage):
         if not relative_path:
             return False
         try:
-            self.s3.meta.client.head_object(Bucket=self.bucket_name, Key=relative_path)
+            self.s3.meta.client.head_object(
+                Bucket=self.bucket_name, Key=relative_path
+            )
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return False

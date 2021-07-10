@@ -3,7 +3,8 @@ import pytest
 from flask_resize import _compat
 
 slow = pytest.mark.skipif(
-    pytest.config.getoption("--skip-slow"), reason="--skip-slow passed in, skipping..."
+    pytest.config.getoption("--skip-slow"),
+    reason="--skip-slow passed in, skipping...",
 )
 
 requires_redis = pytest.mark.skipif(
@@ -11,7 +12,8 @@ requires_redis = pytest.mark.skipif(
 )
 
 requires_boto3 = pytest.mark.skipif(
-    _compat.boto3 is None, reason="`boto3` has to be installed to run this test"
+    _compat.boto3 is None,
+    reason="`boto3` has to be installed to run this test",
 )
 
 requires_cairosvg = pytest.mark.skipif(

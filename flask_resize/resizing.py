@@ -18,6 +18,7 @@ logger = logging.getLogger("flask_resize")
 def format_to_ext(format):
     """Return the file extension to use for format"""
     return {
+        constants.WEBP: "webp",
         constants.JPEG: "jpg",
         constants.PNG: "png",
         constants.SVG: "svg",
@@ -32,35 +33,32 @@ def image_data(img, format, **save_options):
     return fp.read()
 
 
-def _get_package_path(relpath):
-    """Get the full path for a file within the package
+def _get_package_path(relpath: str) -> str:
+    """
+    Get the full path for a file within the package
 
-    Args:
-        relpath (str):
-            A path contained within the flask_resize
-
-    Returns:
-        str: Full path for the file requested
+    :param relpath: A path contained within the flask_resize
     """
     pkgdir = os.path.dirname(__file__)
     return os.path.join(pkgdir, "fonts", relpath)
 
 
-def make_opaque(img, bgcolor):
-    """Apply a background color to image
+def make_opaque(img, bg_color):
+    """
+    Apply a background color to image
 
     Args:
         img (PIL.Image):
             Image to alter.
-        bgcolor (str):
-            A :func:`parse_rgb` parseable value to use as background color.
+        bg_color (str):
+            A parseable value to use as background color.
 
     Returns:
         PIL.Image:
             A new image with the background color applied.
     """
-    bgcolor = ImageColor.getrgb(utils.parse_rgb(bgcolor))
-    processor = pilkit.processors.MakeOpaque(background_color=bgcolor)
+    bg_color = ImageColor.getrgb(bg_color)
+    processor = pilkit.processors.MakeOpaque(background_color=bg_color)
     return processor.process(img)
 
 
@@ -97,13 +95,13 @@ def create_placeholder_image(width=None, height=None, message=None):
     """
     if width is None and height is None:
         raise exc.MissingDimensionsError(
-            "Specify at least one of `width` " "or `height`"
+            "Specify at least one of `width` or `height`"
         )
     placeholder_width = width or height
     placeholder_height = height or width
-    placeholder_text = "{}x{}".format(placeholder_width, placeholder_height)
+    placeholder_text = f"{placeholder_width}x{placeholder_height}"
     if message is not None:
-        placeholder_text += u" ({})".format(message)
+        placeholder_text += f" ({message})"
     text_fill = (255,) * 3
     bg_fill = (220,) * 3
     img = Image.new("RGB", (placeholder_width, placeholder_height), bg_fill)
@@ -132,7 +130,7 @@ class ResizeTarget:
         format=None,
         quality=80,
         fill=False,
-        bgcolor=None,
+        bg_color=None,
         upscale=True,
         progressive=True,
         name_hashing_method=constants.DEFAULT_NAME_HASHING_METHOD,
@@ -150,11 +148,7 @@ class ResizeTarget:
         self.format = utils.parse_format(source_image_relative_url, format)
         self.quality = quality
         self.fill = fill
-        self.bgcolor = (
-            utils.parse_rgb(bgcolor, include_number_sign=False)
-            if bgcolor is not None
-            else None
-        )
+        self.bg_color = bg_color
         self.upscale = upscale
         self.progressive = progressive
         self.name_hashing_method = name_hashing_method
@@ -188,7 +182,7 @@ class ResizeTarget:
             "fill" if self.fill else "",
             "fill" if self.fill else "no-fill",
             "upscale" if self.upscale else "no-upscale",
-            self.bgcolor or "",
+            self.bg_color or "",
         ]
 
     def _generate_unique_key(self):
@@ -196,19 +190,15 @@ class ResizeTarget:
         hash = hashlib.new(self.name_hashing_method)
         hash.update(b("".join(str(a) for a in cache_key_args)))
         name = hash.hexdigest()
-        return ".".join(
-            [
-                "/".join([self.target_directory, name[:2], name[2:4], name[4:]]),
-                self.file_extension,
-            ]
-        )
+        filename = f"{self.target_directory}/{name[:2]}/{name[2:4]}/{name[4:]}"
+        return f"{filename}.{self.file_extension}"
 
     def get_cached_path(self):
         if self.cache_store.exists(self.unique_key):
-            logger.debug("Fetched from cache: {}".format(self.unique_key))
+            logger.debug(f"Fetched from cache: {self.unique_key}")
             return self.unique_key
         else:
-            msg = "`{}` is not cached.".format(self.unique_key)
+            msg = f"`{self.unique_key}` is not cached."
             logger.debug(msg)
             raise exc.CacheMiss(msg)
 
@@ -219,7 +209,7 @@ class ResizeTarget:
             # manually check the path again.
             self.cache_store.add(self.unique_key)
 
-            logger.debug("Found non-cached image: {}".format(self.unique_key))
+            logger.debug(f"Found non-cached image: {self.unique_key}")
             return self.unique_key
         else:
             raise exc.ImageNotFoundError(self.unique_key)
@@ -243,7 +233,8 @@ class ResizeTarget:
         except exc.ImageNotFoundError:
             if self.use_placeholder:
                 source_data = self.generate_placeholder(
-                    "Source image `{}` not found".format(self.source_image_relative_url)
+                    f"Source image `{self.source_image_relative_url}` "
+                    f"not found."
                 )
             else:
                 raise
@@ -259,8 +250,8 @@ class ResizeTarget:
                 width=self.width, height=self.height, upscale=self.upscale
             )
             if self.fill:
-                if self.bgcolor:
-                    mat_color = ImageColor.getrgb(self.bgcolor)
+                if self.bg_color:
+                    mat_color = ImageColor.getrgb(self.bg_color)
                 elif self.format == constants.JPEG:
                     mat_color = (255, 255, 255, 255)  # White
                 else:
@@ -274,11 +265,18 @@ class ResizeTarget:
             "icc_profile": img.info.get("icc_profile"),
         }
 
-        if self.format == constants.JPEG:
-            options.update(quality=int(self.quality), progressive=self.progressive)
+        if self.format == constants.WEBP or self.format == constants.JPEG:
+            options.update(
+                quality=int(self.quality)
+            )
 
-        if self.bgcolor is not None:
-            img = make_opaque(img, self.bgcolor)
+        if self.format == constants.JPEG:
+            options.update(
+                progressive=self.progressive
+            )
+
+        if self.bg_color is not None:
+            img = make_opaque(img, self.bg_color)
 
         img, save_kwargs = pilkit.utils.prepare_image(img, self.format)
         save_kwargs.update(options)
@@ -287,12 +285,16 @@ class ResizeTarget:
         return image_data(img, self.format, **options)
 
     def generate(self):
-        with self.cache_store.transaction(self.unique_key) as transaction_successful:
+        with self.cache_store.transaction(
+            self.unique_key
+        ) as transaction_successful:
 
             if transaction_successful:
-                logger.info("Generating image: {}".format(self.unique_key))
+                logger.info(f"Generating image: {self.unique_key}")
             else:
-                logger.error("GenerateInProgress error for: {}".format(self.unique_key))
+                logger.error(
+                    f"GenerateInProgress error for: {self.unique_key}"
+                )
                 raise exc.GenerateInProgress(self.unique_key)
 
             try:
@@ -300,16 +302,16 @@ class ResizeTarget:
                 self.image_store.save(self.unique_key, data)
             except Exception as e:
                 logger.info(
-                    "Exception occurred - removing {} from cache and "
-                    "image store. Exception was: {}".format(self.unique_key, e)
+                    f"Exception occurred - removing {self.unique_key} from "
+                    f"cache and image store. Exception was: {e}"
                 )
 
                 try:
                     self.image_store.delete(self.unique_key)
                 except Exception as e2:
                     logger.warning(
-                        "Another exception occurred while doing error cleanup "
-                        "for: {}. The exception was: {}".format(self.unique_key, e2)
+                        f"Another exception occurred while doing error cleanup"
+                        f" for: {self.unique_key}. The exception was: {e2}"
                     )
                     pass
 
@@ -358,7 +360,7 @@ class Resizer:
         format=None,
         quality=80,
         fill=False,
-        bgcolor=None,
+        bg_color=None,
         upscale=True,
         progressive=True,
         placeholder=False,
@@ -383,7 +385,7 @@ class Resizer:
                 Fill the entire width and height that was specified if True,
                 otherwise keep the original image dimensions.
                 Defaults to False.
-            bgcolor (Optional[:class:`str`]):
+            bg_color (Optional[:class:`str`]):
                 If specified this color will be used as background.
             upscale (bool):
                 Whether or not to allow the image to become bigger than the
@@ -428,7 +430,7 @@ class Resizer:
             return image_url
 
         if image_url and image_url.startswith(self.base_url):
-            image_url = image_url[len(self.base_url) :]
+            image_url = image_url[len(self.base_url):]
 
         target = ResizeTarget(
             self.storage_backend,
@@ -437,7 +439,7 @@ class Resizer:
             format=format,
             quality=quality,
             fill=fill,
-            bgcolor=bgcolor,
+            bg_color=bg_color,
             upscale=upscale,
             progressive=progressive,
             use_placeholder=placeholder,

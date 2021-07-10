@@ -66,7 +66,10 @@ def test_bin_list_cache_empty(env, redis_cache):
 def test_bin_list_has_cache(env, redis_cache):
     redis_cache.add("hello")
     redis_cache.add("buh-bye")
-    assert set(run(env, "flask-resize", "list", "cache")) == {"hello", "buh-bye"}
+    assert set(run(env, "flask-resize", "list", "cache")) == {
+        "hello",
+        "buh-bye",
+    }
 
 
 @slow

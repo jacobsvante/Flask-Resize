@@ -9,7 +9,9 @@ from .decorators import requires_redis
 
 
 @requires_redis
-def test_generate_in_progress(redis_cache, resizetarget_opts, image1_data, image1_name):
+def test_generate_in_progress(
+    redis_cache, resizetarget_opts, image1_data, image1_name
+):
     resizetarget_opts.update(cache_store=redis_cache)
 
     resize_target = flask_resize.resizing.ResizeTarget(**resizetarget_opts)

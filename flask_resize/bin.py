@@ -4,14 +4,18 @@ import argh
 
 import flask_resize
 
-config = flask_resize.configuration.Config.from_pyfile(os.environ["FLASK_RESIZE_CONF"])
+config = flask_resize.configuration.Config.from_pyfile(
+    os.environ["FLASK_RESIZE_CONF"]
+)
 resize = flask_resize.make_resizer(config)
 
 
 @argh.named("images")
 def clear_images():
     """Delete all generated images from the storage backend"""
-    for filepath in resize.storage_backend.delete_tree(resize.target_directory):
+    for filepath in resize.storage_backend.delete_tree(
+        resize.target_directory
+    ):
         yield filepath
 
 

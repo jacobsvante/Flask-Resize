@@ -47,7 +47,9 @@ def test_resizetarget_init(filestorage):
     )
 
 
-def test_resizetarget_generate(resizetarget_opts, image1_data, image1_name, image1_key):
+def test_resizetarget_generate(
+    resizetarget_opts, image1_data, image1_name, image1_key
+):
     resize_target = resizing.ResizeTarget(**resizetarget_opts)
     assert resize_target.name_hashing_method == "sha1"
 
@@ -83,14 +85,18 @@ def test_resize_filter(tmpdir, image1_data, image2_data):
     file2.write_binary(image2_data)
 
     file1_expected_url = (
-        resize_url + "resized-images/ac/17/b732cabcc4eeb783cd994d0e169665b3bb68.png"
+        resize_url
+        + "resized-images/ac/17/b732cabcc4eeb783cd994d0e169665b3bb68.png"
     )
 
     file2_expected_url = (
-        resize_url + "resized-images/ad/d9/a8c8531825a56f58289087b1f892c5e1348f.png"
+        resize_url
+        + "resized-images/ad/d9/a8c8531825a56f58289087b1f892c5e1348f.png"
     )
 
-    app = create_resizeapp(RESIZE_URL=resize_url, RESIZE_ROOT=str(tmpdir), DEBUG=True)
+    app = create_resizeapp(
+        RESIZE_URL=resize_url, RESIZE_ROOT=str(tmpdir), DEBUG=True
+    )
     template = '<img src="{{ fn|resize("100x") }}">'
 
     @app.route("/")
