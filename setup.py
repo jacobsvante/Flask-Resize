@@ -22,7 +22,7 @@ pkgname = appname.lower().replace("-", "_")
 
 setup(
     name=appname,
-    version="2.0.6",
+    version="3.0.0",
     description="Flask extension for resizing images in code and templates",
     long_description=__doc__,
     packages=find_packages(),
@@ -43,7 +43,8 @@ setup(
         "redis": ["redis"],
         "s3": ["boto3"],
         "full": (
-            ["redis", "boto3"] + (["cairosvg"] if sys.version_info >= (3, 4) else [])
+            ["redis", "boto3"]
+            + (["cairosvg"] if sys.version_info >= (3, 4) else [])
         ),
         "test": [
             "click>=6.7",
@@ -72,7 +73,6 @@ setup(
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: Implementation :: CPython",
